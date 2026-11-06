@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         vkfix
-// @version      2.1.1
+// @version      2.2
 // @author       Ivan Petrov
 // @description  VKFix Userscript for fixing VK social network
 // @license      MIT
@@ -19,14 +19,14 @@
 
   const d=new Set;const e = async e=>{d.has(e)||(d.add(e),(t=>{typeof GM_addStyle=="function"?GM_addStyle(t):(document.head||document.documentElement).appendChild(document.createElement("style")).append(t);})(e));};
 
-  e(" .v-photo-sticker{position:relative;opacity:var(--621856d0);display:flex;flex-shrink:0;flex-direction:column;justify-content:flex-end;transition:all .2s ease}.v-photo-sticker .v-photo-sticker-text{color:#fff;background-color:#000000b3;white-space:normal;word-break:auto-phrase;padding:4px;margin-bottom:-1px;text-align:left;font-size:14px;line-height:1.3;width:var(--641c4bc6);max-height:70px;box-sizing:border-box;overflow:auto;outline:1px solid rgba(255,255,255,.67);border-radius:8px 8px 0 0;outline-offset:-1px}.v-photo-sticker .v-photo-sticker-img{position:relative;height:99px;outline:1px solid rgba(255,255,255,.67);outline-offset:-1px;border-radius:0 0 8px 8px;object-fit:cover;cursor:pointer}.v-photo-sticker .v-photo-sticker-img:focus{outline:var(--vkui_internal--outline);outline-offset:-2px}.v-photo-stickers-popup{position:absolute;bottom:100%;left:0;height:max-content;width:100%;display:flex;gap:8px;overflow-x:auto;padding:1px;z-index:2;pointer-events:none;align-content:flex-end}.v-photo-stickers-popup>*{pointer-events:all}.v-photo-stickers-popup.v-enter-active,.v-photo-stickers-popup.v-leave-active{transition:opacity .5s ease}.v-photo-stickers-popup.v-enter-from,.v-photo-stickers-popup.v-leave-to{opacity:0}.ConvoMain:has(.v-photo-stickers-popup) .ConvoComposer__stickersPanel{display:none!important}.v-photo-stickers-gallery-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:#0006}.v-photo-stickers-gallery{width:min(680px,92vw);max-height:min(75vh,600px);background:#232323;border-radius:12px;display:flex;flex-direction:column;box-shadow:0 8px 32px #00000080}.v-photo-stickers-gallery__header{display:flex;align-items:center;padding:12px 16px;gap:10px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}.v-photo-stickers-gallery__search{flex:1;background:#ffffff14;border:none;border-radius:8px;padding:8px 12px;color:#fff;font-size:14px;outline:none}.v-photo-stickers-gallery__search::placeholder{color:#fff6}.v-photo-stickers-gallery__count{color:#fff6;font-size:13px;white-space:nowrap}.v-photo-stickers-gallery__grid{flex:1;min-height:0;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));grid-auto-rows:130px;gap:10px;align-content:start;color-scheme:dark;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent}.v-photo-stickers-gallery__grid::-webkit-scrollbar{width:6px}.v-photo-stickers-gallery__grid::-webkit-scrollbar-track{background:transparent}.v-photo-stickers-gallery__grid::-webkit-scrollbar-thumb{background:#fff3;border-radius:3px}.v-photo-stickers-gallery__grid::-webkit-scrollbar-thumb:hover{background:#ffffff59}.v-photo-stickers-gallery__item{border-radius:8px;overflow:hidden;cursor:pointer;transition:transform .15s ease;background:#ffffff0a;display:flex;flex-direction:column;height:100%}.v-photo-stickers-gallery__item:hover{transform:scale(1.04)}.v-photo-stickers-gallery__img{width:100%;flex:1;min-height:0;object-fit:cover;display:block}.v-photo-stickers-gallery__label{padding:6px 8px;color:#ffffffd9;font-size:12px;line-height:1.35;word-break:break-word;text-align:left}.v-photo-stickers-gallery__empty{grid-column:1 / -1;text-align:center;color:#fff6;padding:40px 0;font-size:14px}.v-config-field[data-v-14a5abac]{padding:16px 20px;border-radius:var(--n-border-radius);background:#ffffff08;border:1px solid rgba(255,255,255,.06);transition:all .25s ease}.v-config-field[data-v-14a5abac]:hover{background:#ffffff0d;border-color:#ffffff1a}.v-config-field__container[data-v-14a5abac]{display:flex;align-items:center;justify-content:space-between;gap:20px}.v-config-field__info[data-v-14a5abac]{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}.v-config-field__header-row[data-v-14a5abac]{display:flex;align-items:center;gap:12px}.v-config-field__icon[data-v-14a5abac]{font-size:20px;display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0}.v-config-field__label[data-v-14a5abac]{font-size:15px;line-height:1.3;color:var(--n-text-color);word-break:break-word}.v-config-field__description[data-v-14a5abac]{padding-left:36px;font-size:13px;line-height:1.4;display:block}.v-config-field__control[data-v-14a5abac]{flex-shrink:0}.v-config-field__input[data-v-14a5abac] .n-input{background:#0003}.v-config-field--text .v-config-field__container[data-v-14a5abac]{flex-direction:column;align-items:stretch;gap:12px}.v-config-field--text .v-config-field__control[data-v-14a5abac]{width:100%}.v-config-field--checkbox[data-v-14a5abac]{cursor:pointer}.v-config-popup__layout{height:65vh;max-height:560px}.v-config-popup__menu{padding:12px 0}.v-config-popup__menu :deep(.n-menu-item-content):before{display:none!important}.v-config-popup__footer{display:flex;align-items:center;justify-content:space-between;width:100%;gap:16px}.v-config-popup__save-btn{background:linear-gradient(135deg,#42d392,#328f65);border:none;box-shadow:0 4px 14px #2b946533;transition:all .3s cubic-bezier(.4,0,.2,1)}.v-config-popup__save-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px #2b946566}.fade-slide-enter-active,.fade-slide-leave-active{transition:all .2s ease}.fade-slide-enter-from{opacity:0;transform:translate(12px)}.fade-slide-leave-to{opacity:0;transform:translate(-12px)}.v-config-button[data-v-0be9920d]{display:flex!important;align-items:center;padding:0 12px;height:34px;border-radius:0;text-decoration:none;transition:background-color .15s ease;cursor:pointer;position:relative;overflow:hidden;-webkit-user-select:none;user-select:none;box-sizing:border-box;width:100%}.v-config-button[data-v-0be9920d]:hover{background-color:var(--vkui--color_background_secondary_alpha, rgba(0, 0, 0, .05))}.v-config-button[data-v-0be9920d]:active{background-color:var(--vkui--color_background_secondary_alpha, rgba(0, 0, 0, .08))}.v-config-button__before[data-v-0be9920d]{display:flex;align-items:center;justify-content:center;width:20px;height:20px;margin-right:12px;flex-shrink:0}.v-config-button__icon[data-v-0be9920d]{display:block;width:20px;height:20px;color:var(--vkui--color_icon_accent, #2688eb)}.v-config-button__middle[data-v-0be9920d]{flex:1;min-width:0;display:flex;align-items:center}.v-config-button__content[data-v-0be9920d]{display:flex;flex-direction:column;justify-content:center}.v-config-button__text[data-v-0be9920d]{font-family:var(--vkui--font_text--font_family--compact, var(--vkui--font_text--font_family--regular));font-size:var(--vkui--font_headline1--font_size--compact, var(--vkui--font_headline1--font_size--regular));line-height:var(--vkui--font_headline1--line_height--compact, var(--vkui--font_headline1--line_height--regular));font-weight:var(--vkui--font_weight_base3);color:var(--vkui--color_text_primary, #000);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v-config-button__indicator[data-v-0be9920d]{flex-shrink:0} ");
+  e(" .v-photo-sticker{position:relative;display:flex;flex-shrink:0;flex-direction:column;justify-content:flex-end;transition:all .2s ease}.v-photo-sticker .v-photo-sticker-text{color:#fff;background-color:#000;white-space:normal;word-break:auto-phrase;padding:4px;margin-bottom:-1px;text-align:left;font-size:14px;line-height:1.3;width:var(--32e6b184);max-height:calc(5.2em + 8px);box-sizing:border-box;overflow:auto;outline:1px solid rgba(255,255,255,.67);border-radius:8px 8px 0 0;outline-offset:-1px}.v-photo-sticker .v-photo-sticker-img{position:relative;height:99px;outline:1px solid rgba(255,255,255,.67);outline-offset:-1px;border-radius:0 0 8px 8px;object-fit:cover;cursor:pointer;background-color:#000;font-size:0}.v-photo-sticker .v-photo-sticker-img--placeholder{width:var(--4f61a542)}.v-photo-sticker .v-photo-sticker-img:focus{outline:var(--vkui_internal--outline);outline-offset:-2px}.v-photo-stickers-popup{position:absolute;bottom:100%;left:0;height:max-content;width:100%;display:flex;gap:8px;overflow-x:auto;padding:1px;z-index:2;pointer-events:none;align-content:flex-end}.v-photo-stickers-popup>*{pointer-events:all}.v-photo-stickers-popup.v-enter-active,.v-photo-stickers-popup.v-leave-active{transition:opacity .5s ease}.v-photo-stickers-popup.v-enter-from,.v-photo-stickers-popup.v-leave-to{opacity:0}.ConvoMain:has(.v-photo-stickers-popup) .ConvoComposer__stickersPanel{display:none!important}.v-photo-stickers-gallery-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:#0006}.v-photo-stickers-gallery{width:min(680px,92vw);max-height:min(75vh,600px);background:#232323;border-radius:12px;display:flex;flex-direction:column;box-shadow:0 8px 32px #00000080}.v-photo-stickers-gallery__header{display:flex;align-items:center;padding:12px 16px;gap:10px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}.v-photo-stickers-gallery__search{flex:1;background:#ffffff14;border:none;border-radius:8px;padding:8px 12px;color:#fff;font-size:14px;outline:none}.v-photo-stickers-gallery__search::placeholder{color:#fff6}.v-photo-stickers-gallery__count{color:#fff6;font-size:13px;white-space:nowrap}.v-photo-stickers-gallery__grid{flex:1;min-height:0;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));grid-auto-rows:130px;gap:10px;align-content:start;color-scheme:dark;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent}.v-photo-stickers-gallery__grid::-webkit-scrollbar{width:6px}.v-photo-stickers-gallery__grid::-webkit-scrollbar-track{background:transparent}.v-photo-stickers-gallery__grid::-webkit-scrollbar-thumb{background:#fff3;border-radius:3px}.v-photo-stickers-gallery__grid::-webkit-scrollbar-thumb:hover{background:#ffffff59}.v-photo-stickers-gallery__item{border-radius:8px;overflow:hidden;cursor:pointer;transition:transform .15s ease;background:#ffffff0a;display:flex;flex-direction:column;height:100%}.v-photo-stickers-gallery__item:hover{transform:scale(1.04)}.v-photo-stickers-gallery__img{width:100%;flex:1;min-height:0;object-fit:cover;display:block}.v-photo-stickers-gallery__label{padding:6px 8px;color:#ffffffd9;font-size:12px;line-height:1.35;word-break:break-word;text-align:left}.v-photo-stickers-gallery__empty{grid-column:1 / -1;text-align:center;color:#fff6;padding:40px 0;font-size:14px}.v-config-field[data-v-14a5abac]{padding:16px 20px;border-radius:var(--n-border-radius);background:#ffffff08;border:1px solid rgba(255,255,255,.06);transition:all .25s ease}.v-config-field[data-v-14a5abac]:hover{background:#ffffff0d;border-color:#ffffff1a}.v-config-field__container[data-v-14a5abac]{display:flex;align-items:center;justify-content:space-between;gap:20px}.v-config-field__info[data-v-14a5abac]{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}.v-config-field__header-row[data-v-14a5abac]{display:flex;align-items:center;gap:12px}.v-config-field__icon[data-v-14a5abac]{font-size:20px;display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0}.v-config-field__label[data-v-14a5abac]{font-size:15px;line-height:1.3;color:var(--n-text-color);word-break:break-word}.v-config-field__description[data-v-14a5abac]{padding-left:36px;font-size:13px;line-height:1.4;display:block}.v-config-field__control[data-v-14a5abac]{flex-shrink:0}.v-config-field__input[data-v-14a5abac] .n-input{background:#0003}.v-config-field--text .v-config-field__container[data-v-14a5abac]{flex-direction:column;align-items:stretch;gap:12px}.v-config-field--text .v-config-field__control[data-v-14a5abac]{width:100%}.v-config-field--checkbox[data-v-14a5abac]{cursor:pointer}.v-config-popup__layout{height:65vh;max-height:560px}.v-config-popup__menu{padding:12px 0}.v-config-popup__menu :deep(.n-menu-item-content):before{display:none!important}.v-config-popup__footer{display:flex;align-items:center;justify-content:space-between;width:100%;gap:16px}.v-config-popup__save-btn{background:linear-gradient(135deg,#42d392,#328f65);border:none;box-shadow:0 4px 14px #2b946533;transition:all .3s cubic-bezier(.4,0,.2,1)}.v-config-popup__save-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px #2b946566}.fade-slide-enter-active,.fade-slide-leave-active{transition:all .2s ease}.fade-slide-enter-from{opacity:0;transform:translate(12px)}.fade-slide-leave-to{opacity:0;transform:translate(-12px)}.v-config-button[data-v-0be9920d]{display:flex!important;align-items:center;padding:0 12px;height:34px;border-radius:0;text-decoration:none;transition:background-color .15s ease;cursor:pointer;position:relative;overflow:hidden;-webkit-user-select:none;user-select:none;box-sizing:border-box;width:100%}.v-config-button[data-v-0be9920d]:hover{background-color:var(--vkui--color_background_secondary_alpha, rgba(0, 0, 0, .05))}.v-config-button[data-v-0be9920d]:active{background-color:var(--vkui--color_background_secondary_alpha, rgba(0, 0, 0, .08))}.v-config-button__before[data-v-0be9920d]{display:flex;align-items:center;justify-content:center;width:20px;height:20px;margin-right:12px;flex-shrink:0}.v-config-button__icon[data-v-0be9920d]{display:block;width:20px;height:20px;color:var(--vkui--color_icon_accent, #2688eb)}.v-config-button__middle[data-v-0be9920d]{flex:1;min-width:0;display:flex;align-items:center}.v-config-button__content[data-v-0be9920d]{display:flex;flex-direction:column;justify-content:center}.v-config-button__text[data-v-0be9920d]{font-family:var(--vkui--font_text--font_family--compact, var(--vkui--font_text--font_family--regular));font-size:var(--vkui--font_headline1--font_size--compact, var(--vkui--font_headline1--font_size--regular));line-height:var(--vkui--font_headline1--line_height--compact, var(--vkui--font_headline1--line_height--regular));font-weight:var(--vkui--font_weight_base3);color:var(--vkui--color_text_primary, #000);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v-config-button__indicator[data-v-0be9920d]{flex-shrink:0} ");
 
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __commonJS = (cb, mod) => function __require() {
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   };
   var require_index_001 = __commonJS({
-    "index-BgRamHGd.js"(exports$1, module) {
+    "index-Cn0lwvdB.js"(exports$1, module) {
       const DEFAULT_VALUES = {
         fixImagesZooming: false,
         pvExpand: false,
@@ -41,7 +41,8 @@
         "messenger.photo-stickers.albums": "-15,",
         switchTextLayout: false,
         fixFeedPhotoNavigation: false,
-        groupInfoTeleport: false
+        groupInfoTeleport: false,
+        clipsAutoUnmute: false
       };
       class GlobalConfig {
         static cache = null;
@@ -7694,6 +7695,46 @@ el._isVueCE && (/[A-Z]/.test(key) || !isString(nextValue))
         if (instance)
           onUnmounted(fn, target);
       }
+      function useTimeoutFn(cb, interval, options = {}) {
+        const {
+          immediate = true,
+          immediateCallback = false
+        } = options;
+        const isPending = shallowRef(false);
+        let timer = null;
+        function clear() {
+          if (timer) {
+            clearTimeout(timer);
+            timer = null;
+          }
+        }
+        function stop() {
+          isPending.value = false;
+          clear();
+        }
+        function start(...args) {
+          if (immediateCallback)
+            cb();
+          clear();
+          isPending.value = true;
+          timer = setTimeout(() => {
+            isPending.value = false;
+            timer = null;
+            cb(...args);
+          }, toValue(interval));
+        }
+        if (immediate) {
+          isPending.value = true;
+          if (isClient)
+            start();
+        }
+        tryOnScopeDispose(stop);
+        return {
+          isPending: shallowReadonly(isPending),
+          start,
+          stop
+        };
+      }
       function watchImmediate(source, cb, options) {
         return watch(
           source,
@@ -7782,6 +7823,46 @@ toValue(firstParamTargets.value ? args[3] : args[2])
           isMounted2.value;
           return Boolean(callback());
         });
+      }
+      function useMutationObserver(target, callback, options = {}) {
+        const { window: window2 = defaultWindow, ...mutationOptions } = options;
+        let observer2;
+        const isSupported = useSupported(() => window2 && "MutationObserver" in window2);
+        const cleanup = () => {
+          if (observer2) {
+            observer2.disconnect();
+            observer2 = void 0;
+          }
+        };
+        const targets = computed(() => {
+          const value = toValue(target);
+          const items = toArray$1(value).map(unrefElement).filter(notNullish);
+          return new Set(items);
+        });
+        const stopWatch = watch(
+          () => targets.value,
+          (targets2) => {
+            cleanup();
+            if (isSupported.value && targets2.size) {
+              observer2 = new MutationObserver(callback);
+              targets2.forEach((el) => observer2.observe(el, mutationOptions));
+            }
+          },
+          { immediate: true, flush: "post" }
+        );
+        const takeRecords = () => {
+          return observer2 == null ? void 0 : observer2.takeRecords();
+        };
+        const stop = () => {
+          stopWatch();
+          cleanup();
+        };
+        tryOnScopeDispose(stop);
+        return {
+          isSupported,
+          stop,
+          takeRecords
+        };
       }
       const ssrWidthSymbol = Symbol("vueuse-ssr-width");
       function useSSRWidth() {
@@ -8037,7 +8118,7 @@ toValue(firstParamTargets.value ? args[3] : args[2])
       const ARRIVED_STATE_THRESHOLD_PIXELS = 1;
       function useScroll(element, options = {}) {
         const {
-          throttle = 0,
+          throttle: throttle2 = 0,
           idle = 200,
           onStop = noop,
           onScroll = noop,
@@ -8116,7 +8197,7 @@ toValue(firstParamTargets.value ? args[3] : args[2])
           directions.bottom = false;
           onStop(e);
         };
-        const onScrollEndDebounced = useDebounceFn(onScrollEnd, throttle + idle);
+        const onScrollEndDebounced = useDebounceFn(onScrollEnd, throttle2 + idle);
         const setArrivedState = (target) => {
           var _a;
           if (!window2)
@@ -8166,7 +8247,7 @@ toValue(firstParamTargets.value ? args[3] : args[2])
         useEventListener(
           element,
           "scroll",
-          throttle ? useThrottleFn(onScrollHandler, throttle, true, false) : onScrollHandler,
+          throttle2 ? useThrottleFn(onScrollHandler, throttle2, true, false) : onScrollHandler,
           eventListenerOptions
         );
         tryOnMounted(() => {
@@ -8978,6 +9059,9 @@ toValue(firstParamTargets.value ? args[3] : args[2])
           }
         }
       }
+      function getPhotoKey(ownerId, photoId) {
+        return `${ownerId}_${photoId}`;
+      }
       function getPhotoStickerUrl(sticker) {
         return sticker.photo.sizes.find((s) => s.type === "x")?.url ?? sticker.photo.sizes[0].url;
       }
@@ -8988,16 +9072,19 @@ toValue(firstParamTargets.value ? args[3] : args[2])
       }
       const _hoisted_1$5 = ["href"];
       const _hoisted_2$3 = ["src", "alt", "title"];
+      const MAX_LOAD_ATTEMPTS = 3;
+      const RETRY_DELAY_MS = 700;
+      const PLACEHOLDER_WIDTH = "100px";
       const _sfc_main$5 = defineComponent({
         __name: "VPhotoSticker",
         props: {
           sticker: {}
         },
-        emits: ["sendSticker"],
+        emits: ["sendSticker", "loadFailed"],
         setup(__props, { emit: __emit }) {
           useCssVars((_ctx) => ({
-            "621856d0": isLoading.value ? 0 : 1,
-            "641c4bc6": textWidth.value
+            "32e6b184": textWidth.value,
+            "4f61a542": PLACEHOLDER_WIDTH
           }));
           const props = __props;
           const emit2 = __emit;
@@ -9005,14 +9092,52 @@ toValue(firstParamTargets.value ? args[3] : args[2])
           const photoUrl = computed(() => getPhotoStickerUrl(props.sticker));
           const isLoading = ref(true);
           const isError = ref(false);
+          const attempt = ref(0);
+          const imgSrc = ref(photoUrl.value);
+          const isRetrying = ref(false);
+          const { start: startRetry, stop: stopRetry } = useTimeoutFn(
+            () => {
+              isRetrying.value = false;
+              imgSrc.value = photoUrl.value;
+            },
+            () => RETRY_DELAY_MS * attempt.value,
+            { immediate: false }
+          );
+          const isLoaded = computed(() => !isLoading.value && !isError.value);
           const { width: imgWidth } = useElementSize(imgEl);
           const textWidth = computed(() => {
-            return isError.value || isLoading.value ? "100px" : imgWidth.value + "px";
+            return isLoaded.value ? imgWidth.value + "px" : PLACEHOLDER_WIDTH;
           });
-          watch(photoUrl, () => {
+          watch(photoUrl, (photoUrl2) => {
+            stopRetry();
+            isRetrying.value = false;
             isLoading.value = true;
             isError.value = false;
+            attempt.value = 0;
+            imgSrc.value = photoUrl2;
           });
+          function onError() {
+            if (isRetrying.value || isError.value) {
+              return;
+            }
+            Logger.error("VPhotoSticker: фото не загрузилось", {
+              url: photoUrl.value,
+              attempt: attempt.value,
+              photo: props.sticker.photo,
+              suggestion: props.sticker.suggestions[0]
+            });
+            if (attempt.value < MAX_LOAD_ATTEMPTS) {
+              attempt.value++;
+              isRetrying.value = true;
+              imgSrc.value = void 0;
+              startRetry();
+              return;
+            }
+            isError.value = true;
+            isLoading.value = false;
+            imgSrc.value = void 0;
+            emit2("loadFailed", props.sticker);
+          }
           return (_ctx, _cache) => {
             return openBlock(), createElementBlock("a", {
               class: "v-photo-sticker",
@@ -9026,20 +9151,17 @@ toValue(firstParamTargets.value ? args[3] : args[2])
               createBaseVNode("img", {
                 ref_key: "imgEl",
                 ref: imgEl,
-                class: "v-photo-sticker-img",
+                class: normalizeClass(["v-photo-sticker-img", { "v-photo-sticker-img--placeholder": !isLoaded.value }]),
                 tabindex: "0",
-                src: photoUrl.value,
-                alt: _ctx.sticker.photo.text,
+                src: imgSrc.value,
+                alt: isLoaded.value ? _ctx.sticker.photo.text : "",
                 title: _ctx.sticker.suggestions[0],
                 onDragstart: _cache[0] || (_cache[0] = withModifiers(() => {
                 }, ["prevent"])),
                 onClick: _cache[1] || (_cache[1] = withModifiers(($event) => emit2("sendSticker", _ctx.sticker), ["prevent", "stop"])),
                 onLoad: _cache[2] || (_cache[2] = ($event) => isLoading.value = false),
-                onError: _cache[3] || (_cache[3] = ($event) => {
-                  isError.value = true;
-                  isLoading.value = false;
-                })
-              }, null, 40, _hoisted_2$3)
+                onError
+              }, null, 42, _hoisted_2$3)
             ], 8, _hoisted_1$5);
           };
         }
@@ -9057,7 +9179,7 @@ toValue(firstParamTargets.value ? args[3] : args[2])
           stickers: {},
           teleportEl: {}
         },
-        emits: ["sendSticker"],
+        emits: ["sendSticker", "loadFailed"],
         setup(__props, { emit: __emit }) {
           const props = __props;
           const lastStickers = computed((prev) => {
@@ -9079,8 +9201,9 @@ toValue(firstParamTargets.value ? args[3] : args[2])
                       return openBlock(), createBlock(_sfc_main$5, {
                         key: sticker.photo.id,
                         sticker,
-                        onSendSticker: ($event) => emit2("sendSticker", sticker)
-                      }, null, 8, ["sticker", "onSendSticker"]);
+                        onSendSticker: ($event) => emit2("sendSticker", sticker),
+                        onLoadFailed: ($event) => emit2("loadFailed", sticker)
+                      }, null, 8, ["sticker", "onSendSticker", "onLoadFailed"]);
                     }), 128))
                   ], 512)) : createCommentVNode("", true)
                 ]),
@@ -9582,6 +9705,24 @@ lowerBound(word) {
         debounced.flush = flush;
         signal?.addEventListener("abort", cancel, { once: true });
         return debounced;
+      }
+      function throttle(func, throttleMs, { signal, edges = ["leading", "trailing"] } = {}) {
+        let pendingAt = null;
+        const debounced = debounce(func, throttleMs, { signal, edges });
+        const throttled = function(...args) {
+          if (pendingAt == null) {
+            pendingAt = Date.now();
+          } else {
+            if (Date.now() - pendingAt >= throttleMs) {
+              pendingAt = Date.now();
+              debounced.cancel();
+            }
+          }
+          debounced(...args);
+        };
+        throttled.cancel = debounced.cancel;
+        throttled.flush = debounced.flush;
+        return throttled;
       }
       function normalizeLetters(text) {
         return text.toLowerCase().replaceAll("ё", "е");
@@ -10605,6 +10746,8 @@ sortAndLimitResults(results, limit) {
         }
       }
       const STICKERS_POPUP_LIMIT = 30;
+      const PHOTOS_GET_COUNT = 1e3;
+      const MESSENGER_RENDER_TIMEOUT_MS = 15e3;
       const isEnabledPhotoStickers = GlobalConfig.Config.get("messenger.photo-stickers");
       const photoStickersAlbumIds = GlobalConfig.Config.get("messenger.photo-stickers.albums");
       let _initPhotoStickers = ref(false);
@@ -10616,9 +10759,24 @@ sortAndLimitResults(results, limit) {
       const photoCache = PhotoCache.getInstance();
       let albumIds;
       let needUpdatePhotos = true;
+      let isReloadingFailedPhotos = false;
+      const photoStickersById = new Map();
+      const photoStickersVersion = ref(0);
+      function getPhotoSticker(ownerId, photoId) {
+        return photoStickersById.get(getPhotoKey(ownerId, photoId));
+      }
       const stickersStore = shallowReactive({
         photos: [],
         stickers: [],
+        onLoadFailed: async (sticker) => {
+          if (isReloadingFailedPhotos || albumIds === void 0) {
+            return;
+          }
+          isReloadingFailedPhotos = true;
+          Logger.error("messenger: фото не загрузилось после всех попыток, перезапрашиваем альбомы", sticker.photo);
+          await loadPhotos(albumIds);
+          await showStickers(messageText.value);
+        },
         onSendSticker: async (sticker) => {
           stickersStore.stickers = [];
           Logger.info("onSendSticker: sticker", sticker);
@@ -10794,13 +10952,17 @@ sortAndLimitResults(results, limit) {
         if (!isEnabledPhotoStickers) {
           return;
         }
-        const reforgedRootEl = document.getElementById("reforged-root");
+        const reforgedRootEl = await querySelectorWithTimeout({
+          selectors: "#reforged-root",
+          timeout: MESSENGER_RENDER_TIMEOUT_MS
+        });
         if (!reforgedRootEl) {
           Logger.info("messenger: not found #reforged-root");
           return;
         }
         popupStickerEl.value = await querySelectorWithTimeout({
-          selectors: `#popup-sticker-convo-main-history-container`
+          selectors: `#popup-sticker-convo-main-history-container`,
+          timeout: MESSENGER_RENDER_TIMEOUT_MS
         });
         if (!popupStickerEl.value) {
           Logger.info("messenger: not found #popup-sticker-convo-main-history-container");
@@ -10910,20 +11072,39 @@ sortAndLimitResults(results, limit) {
       }
       function setPhotos(photos) {
         stickersStore.photos = photos;
+        photoStickersById.clear();
+        for (const sticker of photos) {
+          photoStickersById.set(getPhotoKey(sticker.photo.owner_id, sticker.photo.id), sticker);
+        }
+        photoStickersVersion.value++;
         initializeStickerSearch(stickersStore.photos);
       }
       async function loadPhotos(albumIds2) {
         const photos = [];
         for (const album_id of albumIds2) {
           try {
-            const photosResult = await APIInteractor.callApi({
-              method: "photos.get",
-              data: {
-                album_id,
-                count: 1e3
+            const items = [];
+            let offset = 0;
+            let total = Infinity;
+            while (offset < total) {
+              const photosResult = await APIInteractor.callApi({
+                method: "photos.get",
+                data: {
+                  album_id,
+                  count: PHOTOS_GET_COUNT,
+                  offset
+                }
+              });
+              const response = photosResult.response;
+              total = response.count;
+              const pageItems = response.items;
+              items.push(...photosToStickers(pageItems));
+              Logger.info(`messenger: loadPhotos album ${album_id}, offset ${offset}, получено ${pageItems.length} из ${total}`);
+              if (!pageItems.length) {
+                break;
               }
-            });
-            const items = photosToStickers(photosResult.response.items);
+              offset += pageItems.length;
+            }
             photos.push(...items);
             await photoCache.setPhotos(album_id, items);
           } catch (error) {
@@ -11269,6 +11450,80 @@ sortAndLimitResults(results, limit) {
         );
         if (!switchTextLayout) return;
         document.addEventListener("keydown", handleKeyDown, true);
+      }
+      const PHOTO_HREF_REGEX = /photo(-?\d+)_(\d+)/;
+      const PROCESSED_ATTR$1 = "data-vkfix-photo-row";
+      function initPhotoRowLinks() {
+        let isStickersRequested = false;
+        const processAll = throttle(() => {
+          const imgEls = document.querySelectorAll(".photo_row_img");
+          if (!imgEls.length) {
+            return;
+          }
+          if (!isStickersRequested) {
+            isStickersRequested = true;
+            initPhotoStickers().then();
+          }
+          const version2 = String(photoStickersVersion.value);
+          for (const imgEl of imgEls) {
+            if (imgEl.getAttribute(PROCESSED_ATTR$1) === version2) {
+              continue;
+            }
+            imgEl.setAttribute(PROCESSED_ATTR$1, version2);
+            processPhotoRow(imgEl);
+          }
+        }, 100);
+        useMutationObserver(document.body, processAll, { childList: true, subtree: true });
+        watch(photoStickersVersion, processAll);
+        processAll();
+      }
+      function processPhotoRow(imgEl) {
+        const linkEl = imgEl.closest("a");
+        const match2 = linkEl?.getAttribute("href")?.match(PHOTO_HREF_REGEX);
+        if (!match2) {
+          return;
+        }
+        const ownerId = Number(match2[1]);
+        const photoId = Number(match2[2]);
+        const sticker = getPhotoSticker(ownerId, photoId);
+        const href = sticker ? getPhotoStickerHref(sticker) : `https://${window.location.host}/photo${ownerId}_${photoId}`;
+        if (linkEl.href !== href) {
+          Logger.info("photoRowLinks: чиним ссылку", linkEl.href, "->", href);
+          linkEl.href = href;
+        }
+        const title2 = sticker?.suggestions[0];
+        if (title2 && linkEl.title !== title2) {
+          linkEl.title = title2;
+        }
+      }
+      const MUTE_BUTTON_SELECTOR = 'button[data-testid="clips-controls-mute-button"]';
+      const UNMUTE_LABEL = "Включить звук";
+      const PROCESSED_ATTR = "data-vkfix-unmuted";
+      function initClipsAutoUnmute() {
+        if (!GlobalConfig.Config.get("clipsAutoUnmute")) {
+          return;
+        }
+        const loggedButtons = new WeakSet();
+        const unmuteAll = throttle(() => {
+          for (const buttonEl of document.querySelectorAll(MUTE_BUTTON_SELECTOR)) {
+            if (buttonEl.hasAttribute(PROCESSED_ATTR)) {
+              continue;
+            }
+            const label = buttonEl.textContent?.trim();
+            if (!loggedButtons.has(buttonEl)) {
+              loggedButtons.add(buttonEl);
+              Logger.info("clipsAutoUnmute: найдена кнопка звука", { label, buttonEl });
+            }
+            if (label !== UNMUTE_LABEL) {
+              continue;
+            }
+            buttonEl.setAttribute(PROCESSED_ATTR, "");
+            buttonEl.click();
+            Logger.info("clipsAutoUnmute: включили звук", buttonEl.textContent?.trim());
+          }
+        }, 100);
+        useMutationObserver(document.body, unmuteAll, { childList: true, subtree: true });
+        unmuteAll();
       }
       function plugin$1(options) {
         let _bPrefix = ".";
@@ -33755,7 +34010,7 @@ as: {
           id: "other",
           title: "Прочее",
           icon: vYe,
-          fieldKeys: ["switchTextLayout", "fixFeedPhotoNavigation", "exportCommunityKeeperBtn"]
+          fieldKeys: ["switchTextLayout", "fixFeedPhotoNavigation", "clipsAutoUnmute", "exportCommunityKeeperBtn"]
         }
       ];
       const configFieldsMeta = {
@@ -33841,6 +34096,13 @@ as: {
           label: "Возвращает пролистывание фото в ленте",
           type: "checkbox",
           icon: "📸"
+        },
+        clipsAutoUnmute: {
+          key: "clipsAutoUnmute",
+          label: "Включать звук при открытии клипов",
+          type: "checkbox",
+          icon: "🔊",
+          description: "Если звук выключен вручную, обратно он не включается"
         },
         groupInfoTeleport: {
           key: "groupInfoTeleport",
@@ -34245,6 +34507,8 @@ as: {
             messenger();
             initSwitchTextLayout();
             initGroupInfoTeleport();
+            initPhotoRowLinks();
+            initClipsAutoUnmute();
             LocationState.init();
           };
           if (document.readyState === "loading") {
