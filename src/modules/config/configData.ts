@@ -62,7 +62,7 @@ export const configSections: ConfigSectionInfo[] = [
     id: 'other',
     title: 'Прочее',
     icon: Icon28AdvertisingOutline,
-    fieldKeys: ['switchTextLayout', 'fixFeedPhotoNavigation', 'exportCommunityKeeperBtn'],
+    fieldKeys: ['switchTextLayout', 'fixFeedPhotoNavigation', 'clipsAutoUnmute', 'exportCommunityKeeperBtn'],
   },
 ]
 
@@ -152,6 +152,13 @@ export const configFieldsMeta: Record<string, ConfigFieldInfo> = {
     label: 'Возвращает пролистывание фото в ленте',
     type: 'checkbox',
     icon: '📸'
+  },
+  clipsAutoUnmute: {
+    key: 'clipsAutoUnmute',
+    label: 'Включать звук при открытии клипов',
+    type: 'checkbox',
+    icon: '🔊',
+    description: 'Если звук выключен вручную, обратно он не включается'
   },
   groupInfoTeleport: {
     key: 'groupInfoTeleport',

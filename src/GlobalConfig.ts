@@ -13,6 +13,7 @@ const DEFAULT_VALUES: Record<string, boolean | string> = {
   switchTextLayout: false,
   fixFeedPhotoNavigation: false,
   groupInfoTeleport: false,
+  clipsAutoUnmute: false,
 }
 
 export class GlobalConfig {

@@ -28,6 +28,7 @@ import {messenger} from "./modules/messenger/messenger";
 import {initSwitchTextLayout} from './modules/switchTextLayout';
 import {initGroupInfoTeleport} from './modules/groupInfoTeleport';
 import {initPhotoRowLinks} from './modules/photoRowLinks';
+import {initClipsAutoUnmute} from './modules/clipsAutoUnmute';
 import {createApp, h} from 'vue';
 import VConfigPopup from './modules/config/VConfigPopup.vue';
 import VConfigButton from './modules/config/VConfigButton.vue';
@@ -76,6 +77,7 @@ import VConfigButton from './modules/config/VConfigButton.vue';
             initSwitchTextLayout(); // Инициализируем функцию переключения раскладки
             initGroupInfoTeleport(); // Инициализируем телепортацию информации о группе
             initPhotoRowLinks(); // Чиним ссылки на фото и добавляем подсказки фото-стикеров
+            initClipsAutoUnmute(); // Включаем звук при открытии клипов
             // Слежение за изменениями в URL
             LocationState.init();
         };
