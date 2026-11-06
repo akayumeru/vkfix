@@ -1,5 +1,5 @@
 import {watch} from "vue";
-import {useMutationObserver} from "@vueuse/core";
+import {useDevicePixelRatio, useMutationObserver} from "@vueuse/core";
 import {throttle} from "es-toolkit";
 import {Logger} from "../classes/Logger";
 import {
@@ -33,6 +33,12 @@ const PICKER_IMG_SELECTOR = `${PICKER_ITEM_SELECTOR} img[src]`;
  */
 const PROCESSED_ATTR = 'data-vkfix-photo-row';
 
+/** Ширина уже запрошенной миниатюры: по ней видно, что после зума нужна картинка покрупнее. */
+const THUMB_WIDTH_ATTR = 'data-vkfix-thumb-width';
+
+/** При зуме браузера меняется плотность пикселей, а не размер блока, поэтому следим именно за ней. */
+const {pixelRatio} = useDevicePixelRatio();
+
 /**
  * VK в мессенджере отдаёт относительную ссылку `photo171882202_457316876`,
  * и браузер превращает её в `/im/convo/photo171882202_457316876`.
@@ -54,7 +60,7 @@ export function initPhotoRowLinks() {
             initPhotoStickers().then();
         }
 
-        const version = String(photoStickersVersion.value);
+        const version = `${photoStickersVersion.value}:${pixelRatio.value}`;
         for (const imgEl of imgEls) {
             if (imgEl.getAttribute(PROCESSED_ATTR) === version) {
                 continue;
@@ -75,7 +81,7 @@ export function initPhotoRowLinks() {
     }, 100);
 
     useMutationObserver(document.body, processAll, {childList: true, subtree: true});
-    watch(photoStickersVersion, processAll);
+    watch([photoStickersVersion, pixelRatio], processAll);
     processAll();
 }
 
@@ -110,25 +116,20 @@ function processPhotoRow(imgEl: HTMLElement) {
 
 /** VK отдаёт превью в 130x98 и на экране они мыльные - просим размер под фактический блок. */
 function upgradeThumbnail(imgEl: HTMLElement, linkEl: HTMLAnchorElement) {
-    const elementWidth = imgEl.offsetWidth;
     const rawThumb = linkEl.getAttribute('onclick')?.match(THUMB_REGEX)?.[1];
     if (!rawThumb) {
         Logger.info('photoRowLinks: в onclick нет ссылки на миниатюру', linkEl.getAttribute('onclick'));
         return;
     }
 
-    const url = resizeThumbUrl(rawThumb.replace(/\\\//g, '/'), elementWidth);
-    if (!url) {
+    const thumb = resizeThumbUrl(rawThumb.replace(/\\\//g, '/'), imgEl);
+    if (!thumb) {
         return;
     }
 
-    const background = `url("${url}")`;
-    if (imgEl.style.backgroundImage === background) {
-        return;
-    }
-
-    Logger.info('photoRowLinks: укрупняем миниатюру', {elementWidth, url});
-    imgEl.style.backgroundImage = background;
+    Logger.info('photoRowLinks: укрупняем миниатюру', thumb);
+    imgEl.style.backgroundImage = `url("${thumb.url}")`;
+    imgEl.setAttribute(THUMB_WIDTH_ATTR, String(thumb.width));
 }
 
 /**
@@ -155,21 +156,23 @@ function processPickerImg(imgEl: HTMLImageElement) {
 
 /** В выборе фотографии для записи превью - картинка со ссылкой того же вида, только в src. */
 function upgradePickerThumbnail(imgEl: HTMLImageElement) {
-    const elementWidth = imgEl.offsetWidth || Number(imgEl.getAttribute('width'));
-    const url = resizeThumbUrl(imgEl.src, elementWidth);
-    if (!url || url === imgEl.src) {
+    const thumb = resizeThumbUrl(imgEl.src, imgEl);
+    if (!thumb) {
         return;
     }
 
-    Logger.info('photoRowLinks: укрупняем миниатюру в выборе фотографии', {elementWidth, url});
-    imgEl.src = url;
+    Logger.info('photoRowLinks: укрупняем миниатюру в выборе фотографии', thumb);
+    imgEl.src = thumb.url;
+    imgEl.setAttribute(THUMB_WIDTH_ATTR, String(thumb.width));
 }
 
 /**
  * Подставляет в ссылку на миниатюру размер под фактический блок: доступные размеры
  * перечислены в параметре `as`, текущий задаётся параметром `cs`.
+ * Возвращает undefined, когда запрашивать нечего: картинка нужного размера уже загружена.
  */
-function resizeThumbUrl(thumbUrl: string, elementWidth: number): string | undefined {
+function resizeThumbUrl(thumbUrl: string, imgEl: HTMLElement): {url: string, width: number, targetWidth: number} | undefined {
+    const elementWidth = imgEl.offsetWidth || Number(imgEl.getAttribute('width'));
     if (!elementWidth) {
         return;
     }
@@ -182,10 +185,17 @@ function resizeThumbUrl(thumbUrl: string, elementWidth: number): string | undefi
         return;
     }
 
-    const targetWidth = elementWidth * (window.devicePixelRatio || 1);
+    const targetWidth = elementWidth * pixelRatio.value;
     const width = widths.find(availableWidth => availableWidth >= targetWidth) ?? widths.at(-1);
 
-    return /[?&]cs=/.test(thumbUrl)
+    // после отдаления ширина нужна меньше, но перекачивать картинку ради этого незачем
+    if (Number(imgEl.getAttribute(THUMB_WIDTH_ATTR)) >= width) {
+        return;
+    }
+
+    const url = /[?&]cs=/.test(thumbUrl)
         ? thumbUrl.replace(/([?&]cs=)[^&]*/, `$1${width}x0`)
         : `${thumbUrl}&cs=${width}x0`;
+
+    return {url, width, targetWidth};
 }

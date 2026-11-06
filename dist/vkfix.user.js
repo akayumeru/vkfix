@@ -26,7 +26,7 @@
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   };
   var require_index_001 = __commonJS({
-    "index-Dt3bIYVl.js"(exports$1, module) {
+    "index-DsMYeTSV.js"(exports$1, module) {
       const DEFAULT_VALUES = {
         fixImagesZooming: false,
         pvExpand: false,
@@ -8443,9 +8443,9 @@ toValue(firstParamTargets.value ? args[3] : args[2])
         );
         return proxy;
       }
-      const { pixelRatio } = useDevicePixelRatio();
+      const { pixelRatio: pixelRatio$1 } = useDevicePixelRatio();
       watch(
-        pixelRatio,
+        pixelRatio$1,
         (pixelRatio2) => {
           document.documentElement.style.setProperty(
             "--device-pixel-ratio",
@@ -11476,6 +11476,8 @@ sortAndLimitResults(results, limit) {
       const PICKER_ITEM_SELECTOR = '[data-testid="posting_photo_picker_photos_item"]';
       const PICKER_IMG_SELECTOR = `${PICKER_ITEM_SELECTOR} img[src]`;
       const PROCESSED_ATTR$1 = "data-vkfix-photo-row";
+      const THUMB_WIDTH_ATTR = "data-vkfix-thumb-width";
+      const { pixelRatio } = useDevicePixelRatio();
       function initPhotoRowLinks() {
         let isStickersRequested = false;
         const processAll = throttle(() => {
@@ -11488,7 +11490,7 @@ sortAndLimitResults(results, limit) {
             isStickersRequested = true;
             initPhotoStickers().then();
           }
-          const version2 = String(photoStickersVersion.value);
+          const version2 = `${photoStickersVersion.value}:${pixelRatio.value}`;
           for (const imgEl of imgEls) {
             if (imgEl.getAttribute(PROCESSED_ATTR$1) === version2) {
               continue;
@@ -11505,7 +11507,7 @@ sortAndLimitResults(results, limit) {
           }
         }, 100);
         useMutationObserver(document.body, processAll, { childList: true, subtree: true });
-        watch(photoStickersVersion, processAll);
+        watch([photoStickersVersion, pixelRatio], processAll);
         processAll();
       }
       function processPhotoRow(imgEl) {
@@ -11529,22 +11531,18 @@ sortAndLimitResults(results, limit) {
         upgradeThumbnail(imgEl, linkEl);
       }
       function upgradeThumbnail(imgEl, linkEl) {
-        const elementWidth = imgEl.offsetWidth;
         const rawThumb = linkEl.getAttribute("onclick")?.match(THUMB_REGEX)?.[1];
         if (!rawThumb) {
           Logger.info("photoRowLinks: в onclick нет ссылки на миниатюру", linkEl.getAttribute("onclick"));
           return;
         }
-        const url = resizeThumbUrl(rawThumb.replace(/\\\//g, "/"), elementWidth);
-        if (!url) {
+        const thumb = resizeThumbUrl(rawThumb.replace(/\\\//g, "/"), imgEl);
+        if (!thumb) {
           return;
         }
-        const background = `url("${url}")`;
-        if (imgEl.style.backgroundImage === background) {
-          return;
-        }
-        Logger.info("photoRowLinks: укрупняем миниатюру", { elementWidth, url });
-        imgEl.style.backgroundImage = background;
+        Logger.info("photoRowLinks: укрупняем миниатюру", thumb);
+        imgEl.style.backgroundImage = `url("${thumb.url}")`;
+        imgEl.setAttribute(THUMB_WIDTH_ATTR, String(thumb.width));
       }
       function processPickerImg(imgEl) {
         const sticker = getPhotoStickerByImageUrl(imgEl.src);
@@ -11562,15 +11560,16 @@ sortAndLimitResults(results, limit) {
         upgradePickerThumbnail(imgEl);
       }
       function upgradePickerThumbnail(imgEl) {
-        const elementWidth = imgEl.offsetWidth || Number(imgEl.getAttribute("width"));
-        const url = resizeThumbUrl(imgEl.src, elementWidth);
-        if (!url || url === imgEl.src) {
+        const thumb = resizeThumbUrl(imgEl.src, imgEl);
+        if (!thumb) {
           return;
         }
-        Logger.info("photoRowLinks: укрупняем миниатюру в выборе фотографии", { elementWidth, url });
-        imgEl.src = url;
+        Logger.info("photoRowLinks: укрупняем миниатюру в выборе фотографии", thumb);
+        imgEl.src = thumb.url;
+        imgEl.setAttribute(THUMB_WIDTH_ATTR, String(thumb.width));
       }
-      function resizeThumbUrl(thumbUrl, elementWidth) {
+      function resizeThumbUrl(thumbUrl, imgEl) {
+        const elementWidth = imgEl.offsetWidth || Number(imgEl.getAttribute("width"));
         if (!elementWidth) {
           return;
         }
@@ -11579,9 +11578,13 @@ sortAndLimitResults(results, limit) {
           Logger.info("photoRowLinks: у миниатюры нет списка размеров", thumbUrl);
           return;
         }
-        const targetWidth = elementWidth * (window.devicePixelRatio || 1);
+        const targetWidth = elementWidth * pixelRatio.value;
         const width = widths.find((availableWidth) => availableWidth >= targetWidth) ?? widths.at(-1);
-        return /[?&]cs=/.test(thumbUrl) ? thumbUrl.replace(/([?&]cs=)[^&]*/, `$1${width}x0`) : `${thumbUrl}&cs=${width}x0`;
+        if (Number(imgEl.getAttribute(THUMB_WIDTH_ATTR)) >= width) {
+          return;
+        }
+        const url = /[?&]cs=/.test(thumbUrl) ? thumbUrl.replace(/([?&]cs=)[^&]*/, `$1${width}x0`) : `${thumbUrl}&cs=${width}x0`;
+        return { url, width, targetWidth };
       }
       const MUTE_BUTTON_SELECTOR = 'button[data-testid="clips-controls-mute-button"]';
       const UNMUTE_LABEL = "Включить звук";
