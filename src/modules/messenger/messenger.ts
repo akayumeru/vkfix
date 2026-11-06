@@ -24,6 +24,9 @@ const STICKERS_POPUP_LIMIT = 30;
 /** Максимум, который photos.get отдаёт за один вызов. */
 const PHOTOS_GET_COUNT = 1000;
 
+/** Сколько ждём отрисовку мессенджера: при открытии по прямой ссылке React успевает не сразу. */
+const MESSENGER_RENDER_TIMEOUT_MS = 15000;
+
 const isEnabledPhotoStickers = GlobalConfig.Config.get('messenger.photo-stickers') as boolean;
 const photoStickersAlbumIds = GlobalConfig.Config.get('messenger.photo-stickers.albums') as string;
 let _initPhotoStickers = ref<boolean | null>(false) // null - идёт инициализация
@@ -266,15 +269,19 @@ export async function messenger() {
         return
     }
 
-    // const reforgedRootEl = await querySelectorWithTimeout({selectors: '#reforged-root'});
-    const reforgedRootEl = document.getElementById('reforged-root');
+    // при переходе внутри VK мессенджер уже отрисован, а при открытии по прямой ссылке - ещё нет, поэтому ждём
+    const reforgedRootEl = await querySelectorWithTimeout({
+        selectors: '#reforged-root',
+        timeout: MESSENGER_RENDER_TIMEOUT_MS,
+    });
     if (!reforgedRootEl) {
         Logger.info('messenger: not found #reforged-root')
         return;
     }
 
     popupStickerEl.value = await querySelectorWithTimeout<HTMLDivElement>({
-        selectors: `#popup-sticker-convo-main-history-container`
+        selectors: `#popup-sticker-convo-main-history-container`,
+        timeout: MESSENGER_RENDER_TIMEOUT_MS,
     });
     if (!popupStickerEl.value) {
         Logger.info('messenger: not found #popup-sticker-convo-main-history-container')
