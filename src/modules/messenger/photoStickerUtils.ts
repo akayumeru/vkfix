@@ -1,5 +1,9 @@
 import { PhotoSticker } from "./types";
 
+export function getPhotoKey(ownerId: number, photoId: number): string {
+  return `${ownerId}_${photoId}`;
+}
+
 export function getPhotoStickerUrl(sticker: PhotoSticker): string {
   return (
     sticker.photo.sizes.find((s) => s.type === "x")?.url ??

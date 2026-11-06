@@ -12,6 +12,7 @@ import {initializeStickerSearch, smartStickerSearch} from "../../classes/Advance
 import {debounce} from "es-toolkit";
 import {useEventListener} from "@vueuse/core";
 import {PhotoCache} from "../../classes/PhotoCache";
+import {getPhotoKey} from "./photoStickerUtils";
 
 
 /**
@@ -41,6 +42,16 @@ let needUpdatePhotos = true
 
 /** Перезапрашиваем альбомы из-за незагрузившихся картинок только один раз за сессию. */
 let isReloadingFailedPhotos = false
+
+/** Фото-стикеры по ключу `${owner_id}_${id}` - чтобы искать подсказку по ссылке на фото в DOM. */
+const photoStickersById = new Map<string, PhotoSticker>()
+
+/** Счётчик обновлений {@link photoStickersById} - на него подписываются потребители вне мессенджера. */
+export const photoStickersVersion = ref(0)
+
+export function getPhotoSticker(ownerId: number, photoId: number): PhotoSticker | undefined {
+    return photoStickersById.get(getPhotoKey(ownerId, photoId))
+}
 
 const stickersStore = shallowReactive<{
     photos: PhotoSticker[]
@@ -354,7 +365,7 @@ async function getAlbumsIds(): Promise<number[]> {
     return albums.map(x => x.id)
 }
 
-async function initPhotoStickers(): Promise<void> {
+export async function initPhotoStickers(): Promise<void> {
     if (!isEnabledPhotoStickers || _initPhotoStickers.value === true) {
         return
     }
@@ -433,6 +444,12 @@ function photosToStickers(photos: Photo[]): PhotoSticker[] {
 
 function setPhotos(photos: PhotoSticker[]) {
     stickersStore.photos = photos
+    photoStickersById.clear()
+    for (const sticker of photos) {
+        photoStickersById.set(getPhotoKey(sticker.photo.owner_id, sticker.photo.id), sticker)
+    }
+
+    photoStickersVersion.value++
     initializeStickerSearch(stickersStore.photos)
 }
 

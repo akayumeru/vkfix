@@ -27,6 +27,7 @@ import {appActions} from "./modules/appActions";
 import {messenger} from "./modules/messenger/messenger";
 import {initSwitchTextLayout} from './modules/switchTextLayout';
 import {initGroupInfoTeleport} from './modules/groupInfoTeleport';
+import {initPhotoRowLinks} from './modules/photoRowLinks';
 import {createApp, h} from 'vue';
 import VConfigPopup from './modules/config/VConfigPopup.vue';
 import VConfigButton from './modules/config/VConfigButton.vue';
@@ -74,6 +75,7 @@ import VConfigButton from './modules/config/VConfigButton.vue';
             messenger(); // Инициализируем дополнения к мессенджеру
             initSwitchTextLayout(); // Инициализируем функцию переключения раскладки
             initGroupInfoTeleport(); // Инициализируем телепортацию информации о группе
+            initPhotoRowLinks(); // Чиним ссылки на фото и добавляем подсказки фото-стикеров
             // Слежение за изменениями в URL
             LocationState.init();
         };
