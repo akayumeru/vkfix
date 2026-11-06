@@ -9,6 +9,12 @@ import {getPhotoStickerHref} from "./messenger/photoStickerUtils";
 const PHOTO_HREF_REGEX = /photo(-?\d+)_(\d+)/;
 
 /**
+ * Ссылка на миниатюру в onclick: у неё нет подписи, зато есть список доступных
+ * размеров в `as=` и текущий размер в `cs=`, который можно поднять.
+ */
+const THUMB_REGEX = /"thumb_[a-z]":"(.*?)"/;
+
+/**
  * Помечаем обработанные ссылки версией справочника стикеров:
  * когда стикеры догрузятся, версия изменится и мы проставим подсказки повторно.
  */
@@ -75,4 +81,43 @@ function processPhotoRow(imgEl: HTMLElement) {
     if (title && linkEl.title !== title) {
         linkEl.title = title;
     }
+
+    upgradeThumbnail(imgEl, linkEl);
+}
+
+/** VK отдаёт превью в 130x98 и на экране они мыльные - просим размер под фактический блок. */
+function upgradeThumbnail(imgEl: HTMLElement, linkEl: HTMLAnchorElement) {
+    const elementWidth = imgEl.offsetWidth;
+    if (!elementWidth) {
+        return;
+    }
+
+    const rawThumb = linkEl.getAttribute('onclick')?.match(THUMB_REGEX)?.[1];
+    if (!rawThumb) {
+        Logger.info('photoRowLinks: в onclick нет ссылки на миниатюру', linkEl.getAttribute('onclick'));
+        return;
+    }
+
+    const thumbUrl = rawThumb.replace(/\\\//g, '/');
+    const widths = thumbUrl.match(/[?&]as=([^&]+)/)?.[1]
+        .split(',')
+        .map(size => Number(size.split('x')[0]));
+    if (!widths?.length) {
+        Logger.info('photoRowLinks: у миниатюры нет списка размеров', thumbUrl);
+        return;
+    }
+
+    const targetWidth = elementWidth * (window.devicePixelRatio || 1);
+    const width = widths.find(availableWidth => availableWidth >= targetWidth) ?? widths.at(-1);
+    const url = /[?&]cs=/.test(thumbUrl)
+        ? thumbUrl.replace(/([?&]cs=)[^&]*/, `$1${width}x0`)
+        : `${thumbUrl}&cs=${width}x0`;
+
+    const background = `url("${url}")`;
+    if (imgEl.style.backgroundImage === background) {
+        return;
+    }
+
+    Logger.info('photoRowLinks: укрупняем миниатюру', {elementWidth, targetWidth, width, url});
+    imgEl.style.backgroundImage = background;
 }

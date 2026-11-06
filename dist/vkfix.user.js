@@ -26,7 +26,7 @@
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   };
   var require_index_001 = __commonJS({
-    "index-Cn0lwvdB.js"(exports$1, module) {
+    "index-Ds8eekDZ.js"(exports$1, module) {
       const DEFAULT_VALUES = {
         fixImagesZooming: false,
         pvExpand: false,
@@ -11452,6 +11452,7 @@ sortAndLimitResults(results, limit) {
         document.addEventListener("keydown", handleKeyDown, true);
       }
       const PHOTO_HREF_REGEX = /photo(-?\d+)_(\d+)/;
+      const THUMB_REGEX = /"thumb_[a-z]":"(.*?)"/;
       const PROCESSED_ATTR$1 = "data-vkfix-photo-row";
       function initPhotoRowLinks() {
         let isStickersRequested = false;
@@ -11495,6 +11496,33 @@ sortAndLimitResults(results, limit) {
         if (title2 && linkEl.title !== title2) {
           linkEl.title = title2;
         }
+        upgradeThumbnail(imgEl, linkEl);
+      }
+      function upgradeThumbnail(imgEl, linkEl) {
+        const elementWidth = imgEl.offsetWidth;
+        if (!elementWidth) {
+          return;
+        }
+        const rawThumb = linkEl.getAttribute("onclick")?.match(THUMB_REGEX)?.[1];
+        if (!rawThumb) {
+          Logger.info("photoRowLinks: в onclick нет ссылки на миниатюру", linkEl.getAttribute("onclick"));
+          return;
+        }
+        const thumbUrl = rawThumb.replace(/\\\//g, "/");
+        const widths = thumbUrl.match(/[?&]as=([^&]+)/)?.[1].split(",").map((size2) => Number(size2.split("x")[0]));
+        if (!widths?.length) {
+          Logger.info("photoRowLinks: у миниатюры нет списка размеров", thumbUrl);
+          return;
+        }
+        const targetWidth = elementWidth * (window.devicePixelRatio || 1);
+        const width = widths.find((availableWidth) => availableWidth >= targetWidth) ?? widths.at(-1);
+        const url = /[?&]cs=/.test(thumbUrl) ? thumbUrl.replace(/([?&]cs=)[^&]*/, `$1${width}x0`) : `${thumbUrl}&cs=${width}x0`;
+        const background = `url("${url}")`;
+        if (imgEl.style.backgroundImage === background) {
+          return;
+        }
+        Logger.info("photoRowLinks: укрупняем миниатюру", { elementWidth, targetWidth, width, url });
+        imgEl.style.backgroundImage = background;
       }
       const MUTE_BUTTON_SELECTOR = 'button[data-testid="clips-controls-mute-button"]';
       const UNMUTE_LABEL = "Включить звук";
