@@ -21,6 +21,9 @@ import {PhotoCache} from "../../classes/PhotoCache";
  */
 const STICKERS_POPUP_LIMIT = 30;
 
+/** Максимум, который photos.get отдаёт за один вызов. */
+const PHOTOS_GET_COUNT = 1000;
+
 const isEnabledPhotoStickers = GlobalConfig.Config.get('messenger.photo-stickers') as boolean;
 const photoStickersAlbumIds = GlobalConfig.Config.get('messenger.photo-stickers.albums') as string;
 let _initPhotoStickers = ref<boolean | null>(false) // null - идёт инициализация
@@ -415,14 +418,31 @@ async function loadPhotos(albumIds: number[]) {
     const photos: PhotoSticker[] = []
     for (const album_id of albumIds) {
         try {
-            const photosResult = await APIInteractor.callApi({
-                method: 'photos.get',
-                data: {
-                    album_id,
-                    count: 1000,
+            const items: PhotoSticker[] = []
+            let offset = 0
+            let total = Infinity
+            // photos.get отдаёт максимум PHOTOS_GET_COUNT за раз, поэтому ходим страницами, пока альбом не кончится
+            while (offset < total) {
+                const photosResult = await APIInteractor.callApi({
+                    method: 'photos.get',
+                    data: {
+                        album_id,
+                        count: PHOTOS_GET_COUNT,
+                        offset,
+                    }
+                })
+                const response = photosResult.response
+                total = response.count
+                const pageItems: Photo[] = response.items
+                items.push(...photosToStickers(pageItems))
+                Logger.info(`messenger: loadPhotos album ${album_id}, offset ${offset}, получено ${pageItems.length} из ${total}`)
+                if (!pageItems.length) {
+                    break
                 }
-            })
-            const items = photosToStickers(photosResult.response.items)
+
+                offset += pageItems.length
+            }
+
             photos.push(...items)
             await photoCache.setPhotos(album_id, items)
         } catch (error) {
