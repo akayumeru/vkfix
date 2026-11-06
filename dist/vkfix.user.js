@@ -26,7 +26,7 @@
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   };
   var require_index_001 = __commonJS({
-    "index-Ds8eekDZ.js"(exports$1, module) {
+    "index-Cf-7dILr.js"(exports$1, module) {
       const DEFAULT_VALUES = {
         fixImagesZooming: false,
         pvExpand: false,
@@ -11453,12 +11453,15 @@ sortAndLimitResults(results, limit) {
       }
       const PHOTO_HREF_REGEX = /photo(-?\d+)_(\d+)/;
       const THUMB_REGEX = /"thumb_[a-z]":"(.*?)"/;
+      const PHOTO_ROW_SELECTOR = ".photo_row_img";
+      const PICKER_IMG_SELECTOR = '[data-testid="posting_photo_picker_photos_item"] img[src]';
       const PROCESSED_ATTR$1 = "data-vkfix-photo-row";
       function initPhotoRowLinks() {
         let isStickersRequested = false;
         const processAll = throttle(() => {
-          const imgEls = document.querySelectorAll(".photo_row_img");
-          if (!imgEls.length) {
+          const imgEls = document.querySelectorAll(PHOTO_ROW_SELECTOR);
+          const pickerImgEls = document.querySelectorAll(PICKER_IMG_SELECTOR);
+          if (!imgEls.length && !pickerImgEls.length) {
             return;
           }
           if (!isStickersRequested) {
@@ -11472,6 +11475,9 @@ sortAndLimitResults(results, limit) {
             }
             imgEl.setAttribute(PROCESSED_ATTR$1, version2);
             processPhotoRow(imgEl);
+          }
+          for (const imgEl of pickerImgEls) {
+            upgradePickerThumbnail(imgEl);
           }
         }, 100);
         useMutationObserver(document.body, processAll, { childList: true, subtree: true });
@@ -11500,15 +11506,35 @@ sortAndLimitResults(results, limit) {
       }
       function upgradeThumbnail(imgEl, linkEl) {
         const elementWidth = imgEl.offsetWidth;
-        if (!elementWidth) {
-          return;
-        }
         const rawThumb = linkEl.getAttribute("onclick")?.match(THUMB_REGEX)?.[1];
         if (!rawThumb) {
           Logger.info("photoRowLinks: в onclick нет ссылки на миниатюру", linkEl.getAttribute("onclick"));
           return;
         }
-        const thumbUrl = rawThumb.replace(/\\\//g, "/");
+        const url = resizeThumbUrl(rawThumb.replace(/\\\//g, "/"), elementWidth);
+        if (!url) {
+          return;
+        }
+        const background = `url("${url}")`;
+        if (imgEl.style.backgroundImage === background) {
+          return;
+        }
+        Logger.info("photoRowLinks: укрупняем миниатюру", { elementWidth, url });
+        imgEl.style.backgroundImage = background;
+      }
+      function upgradePickerThumbnail(imgEl) {
+        const elementWidth = imgEl.offsetWidth || Number(imgEl.getAttribute("width"));
+        const url = resizeThumbUrl(imgEl.src, elementWidth);
+        if (!url || url === imgEl.src) {
+          return;
+        }
+        Logger.info("photoRowLinks: укрупняем миниатюру в выборе фотографии", { elementWidth, url });
+        imgEl.src = url;
+      }
+      function resizeThumbUrl(thumbUrl, elementWidth) {
+        if (!elementWidth) {
+          return;
+        }
         const widths = thumbUrl.match(/[?&]as=([^&]+)/)?.[1].split(",").map((size2) => Number(size2.split("x")[0]));
         if (!widths?.length) {
           Logger.info("photoRowLinks: у миниатюры нет списка размеров", thumbUrl);
@@ -11516,13 +11542,7 @@ sortAndLimitResults(results, limit) {
         }
         const targetWidth = elementWidth * (window.devicePixelRatio || 1);
         const width = widths.find((availableWidth) => availableWidth >= targetWidth) ?? widths.at(-1);
-        const url = /[?&]cs=/.test(thumbUrl) ? thumbUrl.replace(/([?&]cs=)[^&]*/, `$1${width}x0`) : `${thumbUrl}&cs=${width}x0`;
-        const background = `url("${url}")`;
-        if (imgEl.style.backgroundImage === background) {
-          return;
-        }
-        Logger.info("photoRowLinks: укрупняем миниатюру", { elementWidth, targetWidth, width, url });
-        imgEl.style.backgroundImage = background;
+        return /[?&]cs=/.test(thumbUrl) ? thumbUrl.replace(/([?&]cs=)[^&]*/, `$1${width}x0`) : `${thumbUrl}&cs=${width}x0`;
       }
       const MUTE_BUTTON_SELECTOR = 'button[data-testid="clips-controls-mute-button"]';
       const UNMUTE_LABEL = "Включить звук";

@@ -14,6 +14,12 @@ const PHOTO_HREF_REGEX = /photo(-?\d+)_(\d+)/;
  */
 const THUMB_REGEX = /"thumb_[a-z]":"(.*?)"/;
 
+/** Старый выбор фотографии: превью лежит фоном у блока внутри ссылки. */
+const PHOTO_ROW_SELECTOR = '.photo_row_img';
+
+/** Выбор фотографии в записи: превью - обычная картинка, ссылки и id фотографии рядом нет. */
+const PICKER_IMG_SELECTOR = '[data-testid="posting_photo_picker_photos_item"] img[src]';
+
 /**
  * Помечаем обработанные ссылки версией справочника стикеров:
  * когда стикеры догрузятся, версия изменится и мы проставим подсказки повторно.
@@ -29,8 +35,9 @@ export function initPhotoRowLinks() {
     let isStickersRequested = false;
 
     const processAll = throttle(() => {
-        const imgEls = document.querySelectorAll<HTMLElement>('.photo_row_img');
-        if (!imgEls.length) {
+        const imgEls = document.querySelectorAll<HTMLElement>(PHOTO_ROW_SELECTOR);
+        const pickerImgEls = document.querySelectorAll<HTMLImageElement>(PICKER_IMG_SELECTOR);
+        if (!imgEls.length && !pickerImgEls.length) {
             return;
         }
 
@@ -48,6 +55,10 @@ export function initPhotoRowLinks() {
 
             imgEl.setAttribute(PROCESSED_ATTR, version);
             processPhotoRow(imgEl);
+        }
+
+        for (const imgEl of pickerImgEls) {
+            upgradePickerThumbnail(imgEl);
         }
     }, 100);
 
@@ -88,17 +99,47 @@ function processPhotoRow(imgEl: HTMLElement) {
 /** VK отдаёт превью в 130x98 и на экране они мыльные - просим размер под фактический блок. */
 function upgradeThumbnail(imgEl: HTMLElement, linkEl: HTMLAnchorElement) {
     const elementWidth = imgEl.offsetWidth;
-    if (!elementWidth) {
-        return;
-    }
-
     const rawThumb = linkEl.getAttribute('onclick')?.match(THUMB_REGEX)?.[1];
     if (!rawThumb) {
         Logger.info('photoRowLinks: в onclick нет ссылки на миниатюру', linkEl.getAttribute('onclick'));
         return;
     }
 
-    const thumbUrl = rawThumb.replace(/\\\//g, '/');
+    const url = resizeThumbUrl(rawThumb.replace(/\\\//g, '/'), elementWidth);
+    if (!url) {
+        return;
+    }
+
+    const background = `url("${url}")`;
+    if (imgEl.style.backgroundImage === background) {
+        return;
+    }
+
+    Logger.info('photoRowLinks: укрупняем миниатюру', {elementWidth, url});
+    imgEl.style.backgroundImage = background;
+}
+
+/** В выборе фотографии для записи превью - картинка со ссылкой того же вида, только в src. */
+function upgradePickerThumbnail(imgEl: HTMLImageElement) {
+    const elementWidth = imgEl.offsetWidth || Number(imgEl.getAttribute('width'));
+    const url = resizeThumbUrl(imgEl.src, elementWidth);
+    if (!url || url === imgEl.src) {
+        return;
+    }
+
+    Logger.info('photoRowLinks: укрупняем миниатюру в выборе фотографии', {elementWidth, url});
+    imgEl.src = url;
+}
+
+/**
+ * Подставляет в ссылку на миниатюру размер под фактический блок: доступные размеры
+ * перечислены в параметре `as`, текущий задаётся параметром `cs`.
+ */
+function resizeThumbUrl(thumbUrl: string, elementWidth: number): string | undefined {
+    if (!elementWidth) {
+        return;
+    }
+
     const widths = thumbUrl.match(/[?&]as=([^&]+)/)?.[1]
         .split(',')
         .map(size => Number(size.split('x')[0]));
@@ -109,15 +150,8 @@ function upgradeThumbnail(imgEl: HTMLElement, linkEl: HTMLAnchorElement) {
 
     const targetWidth = elementWidth * (window.devicePixelRatio || 1);
     const width = widths.find(availableWidth => availableWidth >= targetWidth) ?? widths.at(-1);
-    const url = /[?&]cs=/.test(thumbUrl)
+
+    return /[?&]cs=/.test(thumbUrl)
         ? thumbUrl.replace(/([?&]cs=)[^&]*/, `$1${width}x0`)
         : `${thumbUrl}&cs=${width}x0`;
-
-    const background = `url("${url}")`;
-    if (imgEl.style.backgroundImage === background) {
-        return;
-    }
-
-    Logger.info('photoRowLinks: укрупняем миниатюру', {elementWidth, targetWidth, width, url});
-    imgEl.style.backgroundImage = background;
 }
