@@ -2,8 +2,13 @@ import {watch} from "vue";
 import {useMutationObserver} from "@vueuse/core";
 import {throttle} from "es-toolkit";
 import {Logger} from "../classes/Logger";
-import {getPhotoSticker, initPhotoStickers, photoStickersVersion} from "./messenger/messenger";
-import {getPhotoStickerHref} from "./messenger/photoStickerUtils";
+import {
+    getPhotoSticker,
+    getPhotoStickerByImageUrl,
+    initPhotoStickers,
+    photoStickersVersion
+} from "./messenger/messenger";
+import {getPhotoImageKey, getPhotoStickerHref} from "./messenger/photoStickerUtils";
 
 /** Из ссылки вида `photo171882202_457316876` или `/photo171882202_457316876?list=...` берём владельца и id фото. */
 const PHOTO_HREF_REGEX = /photo(-?\d+)_(\d+)/;
@@ -18,7 +23,9 @@ const THUMB_REGEX = /"thumb_[a-z]":"(.*?)"/;
 const PHOTO_ROW_SELECTOR = '.photo_row_img';
 
 /** Выбор фотографии в записи: превью - обычная картинка, ссылки и id фотографии рядом нет. */
-const PICKER_IMG_SELECTOR = '[data-testid="posting_photo_picker_photos_item"] img[src]';
+const PICKER_ITEM_SELECTOR = '[data-testid="posting_photo_picker_photos_item"]';
+
+const PICKER_IMG_SELECTOR = `${PICKER_ITEM_SELECTOR} img[src]`;
 
 /**
  * Помечаем обработанные ссылки версией справочника стикеров:
@@ -58,7 +65,12 @@ export function initPhotoRowLinks() {
         }
 
         for (const imgEl of pickerImgEls) {
-            upgradePickerThumbnail(imgEl);
+            if (imgEl.getAttribute(PROCESSED_ATTR) === version) {
+                continue;
+            }
+
+            imgEl.setAttribute(PROCESSED_ATTR, version);
+            processPickerImg(imgEl);
         }
     }, 100);
 
@@ -117,6 +129,28 @@ function upgradeThumbnail(imgEl: HTMLElement, linkEl: HTMLAnchorElement) {
 
     Logger.info('photoRowLinks: укрупняем миниатюру', {elementWidth, url});
     imgEl.style.backgroundImage = background;
+}
+
+/**
+ * В выборе фотографии для записи нет ни ссылки, ни id фотографии, поэтому стикер ищем
+ * по имени файла картинки: у всех размеров одной фотографии оно одинаковое.
+ */
+function processPickerImg(imgEl: HTMLImageElement) {
+    const sticker = getPhotoStickerByImageUrl(imgEl.src);
+    if (!sticker) {
+        Logger.info('photoRowLinks: фотография из выбора не нашлась среди стикеров', {
+            imageKey: getPhotoImageKey(imgEl.src),
+            src: imgEl.src,
+        });
+    }
+
+    const itemEl = imgEl.closest<HTMLElement>(PICKER_ITEM_SELECTOR) ?? imgEl;
+    const title = sticker?.suggestions[0];
+    if (title && itemEl.title !== title) {
+        itemEl.title = title;
+    }
+
+    upgradePickerThumbnail(imgEl);
 }
 
 /** В выборе фотографии для записи превью - картинка со ссылкой того же вида, только в src. */

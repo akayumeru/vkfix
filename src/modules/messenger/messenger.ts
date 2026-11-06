@@ -12,7 +12,7 @@ import {initializeStickerSearch, smartStickerSearch} from "../../classes/Advance
 import {debounce} from "es-toolkit";
 import {useEventListener} from "@vueuse/core";
 import {PhotoCache} from "../../classes/PhotoCache";
-import {getPhotoKey} from "./photoStickerUtils";
+import {getPhotoImageKey, getPhotoKey} from "./photoStickerUtils";
 
 
 /**
@@ -49,8 +49,17 @@ const photoStickersById = new Map<string, PhotoSticker>()
 /** Счётчик обновлений {@link photoStickersById} - на него подписываются потребители вне мессенджера. */
 export const photoStickersVersion = ref(0)
 
+/** Те же стикеры, но по имени файла картинки - для мест, где VK не отдаёт id фотографии. */
+const photoStickersByImageKey = new Map<string, PhotoSticker>()
+
 export function getPhotoSticker(ownerId: number, photoId: number): PhotoSticker | undefined {
     return photoStickersById.get(getPhotoKey(ownerId, photoId))
+}
+
+export function getPhotoStickerByImageUrl(url: string): PhotoSticker | undefined {
+    const imageKey = getPhotoImageKey(url)
+
+    return imageKey === undefined ? undefined : photoStickersByImageKey.get(imageKey)
 }
 
 const stickersStore = shallowReactive<{
@@ -445,10 +454,22 @@ function photosToStickers(photos: Photo[]): PhotoSticker[] {
 function setPhotos(photos: PhotoSticker[]) {
     stickersStore.photos = photos
     photoStickersById.clear()
+    photoStickersByImageKey.clear()
     for (const sticker of photos) {
         photoStickersById.set(getPhotoKey(sticker.photo.owner_id, sticker.photo.id), sticker)
+        // ссылки на разные размеры ведут на один файл, так что ключей у фотографии несколько
+        for (const size of sticker.photo.sizes) {
+            const imageKey = getPhotoImageKey(size.url)
+            if (imageKey !== undefined) {
+                photoStickersByImageKey.set(imageKey, sticker)
+            }
+        }
     }
 
+    Logger.info('messenger: ключи картинок фото-стикеров', {
+        count: photoStickersByImageKey.size,
+        examples: [...photoStickersByImageKey.keys()].slice(0, 3),
+    })
     photoStickersVersion.value++
     initializeStickerSearch(stickersStore.photos)
 }

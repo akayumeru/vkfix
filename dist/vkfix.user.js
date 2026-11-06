@@ -26,7 +26,7 @@
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   };
   var require_index_001 = __commonJS({
-    "index-Cf-7dILr.js"(exports$1, module) {
+    "index-Dt3bIYVl.js"(exports$1, module) {
       const DEFAULT_VALUES = {
         fixImagesZooming: false,
         pvExpand: false,
@@ -9062,6 +9062,9 @@ toValue(firstParamTargets.value ? args[3] : args[2])
       function getPhotoKey(ownerId, photoId) {
         return `${ownerId}_${photoId}`;
       }
+      function getPhotoImageKey(url) {
+        return url.split("?")[0].split("/").at(-1)?.replace(/\.[a-z0-9]+$/i, "");
+      }
       function getPhotoStickerUrl(sticker) {
         return sticker.photo.sizes.find((s) => s.type === "x")?.url ?? sticker.photo.sizes[0].url;
       }
@@ -10762,8 +10765,13 @@ sortAndLimitResults(results, limit) {
       let isReloadingFailedPhotos = false;
       const photoStickersById = new Map();
       const photoStickersVersion = ref(0);
+      const photoStickersByImageKey = new Map();
       function getPhotoSticker(ownerId, photoId) {
         return photoStickersById.get(getPhotoKey(ownerId, photoId));
+      }
+      function getPhotoStickerByImageUrl(url) {
+        const imageKey = getPhotoImageKey(url);
+        return imageKey === void 0 ? void 0 : photoStickersByImageKey.get(imageKey);
       }
       const stickersStore = shallowReactive({
         photos: [],
@@ -11073,9 +11081,20 @@ sortAndLimitResults(results, limit) {
       function setPhotos(photos) {
         stickersStore.photos = photos;
         photoStickersById.clear();
+        photoStickersByImageKey.clear();
         for (const sticker of photos) {
           photoStickersById.set(getPhotoKey(sticker.photo.owner_id, sticker.photo.id), sticker);
+          for (const size2 of sticker.photo.sizes) {
+            const imageKey = getPhotoImageKey(size2.url);
+            if (imageKey !== void 0) {
+              photoStickersByImageKey.set(imageKey, sticker);
+            }
+          }
         }
+        Logger.info("messenger: ключи картинок фото-стикеров", {
+          count: photoStickersByImageKey.size,
+          examples: [...photoStickersByImageKey.keys()].slice(0, 3)
+        });
         photoStickersVersion.value++;
         initializeStickerSearch(stickersStore.photos);
       }
@@ -11454,7 +11473,8 @@ sortAndLimitResults(results, limit) {
       const PHOTO_HREF_REGEX = /photo(-?\d+)_(\d+)/;
       const THUMB_REGEX = /"thumb_[a-z]":"(.*?)"/;
       const PHOTO_ROW_SELECTOR = ".photo_row_img";
-      const PICKER_IMG_SELECTOR = '[data-testid="posting_photo_picker_photos_item"] img[src]';
+      const PICKER_ITEM_SELECTOR = '[data-testid="posting_photo_picker_photos_item"]';
+      const PICKER_IMG_SELECTOR = `${PICKER_ITEM_SELECTOR} img[src]`;
       const PROCESSED_ATTR$1 = "data-vkfix-photo-row";
       function initPhotoRowLinks() {
         let isStickersRequested = false;
@@ -11477,7 +11497,11 @@ sortAndLimitResults(results, limit) {
             processPhotoRow(imgEl);
           }
           for (const imgEl of pickerImgEls) {
-            upgradePickerThumbnail(imgEl);
+            if (imgEl.getAttribute(PROCESSED_ATTR$1) === version2) {
+              continue;
+            }
+            imgEl.setAttribute(PROCESSED_ATTR$1, version2);
+            processPickerImg(imgEl);
           }
         }, 100);
         useMutationObserver(document.body, processAll, { childList: true, subtree: true });
@@ -11521,6 +11545,21 @@ sortAndLimitResults(results, limit) {
         }
         Logger.info("photoRowLinks: укрупняем миниатюру", { elementWidth, url });
         imgEl.style.backgroundImage = background;
+      }
+      function processPickerImg(imgEl) {
+        const sticker = getPhotoStickerByImageUrl(imgEl.src);
+        if (!sticker) {
+          Logger.info("photoRowLinks: фотография из выбора не нашлась среди стикеров", {
+            imageKey: getPhotoImageKey(imgEl.src),
+            src: imgEl.src
+          });
+        }
+        const itemEl = imgEl.closest(PICKER_ITEM_SELECTOR) ?? imgEl;
+        const title2 = sticker?.suggestions[0];
+        if (title2 && itemEl.title !== title2) {
+          itemEl.title = title2;
+        }
+        upgradePickerThumbnail(imgEl);
       }
       function upgradePickerThumbnail(imgEl) {
         const elementWidth = imgEl.offsetWidth || Number(imgEl.getAttribute("width"));
