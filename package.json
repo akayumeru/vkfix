@@ -28,7 +28,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/greasemonkey": "4.0.7",
-    "@types/node": "18.18.2",
+    "@types/node": "22.19.0",
     "@vitejs/plugin-vue": "^6.0.5",
     "@vitest/ui": "^2.1.8",
     "naive-ui": "^2.44.1",
