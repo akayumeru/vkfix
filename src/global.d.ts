@@ -1,6 +1,7 @@
 declare var GM_addStyle: (style: string) => void;
 declare var GM_getValue: (key: string) => any;
 declare var GM_setValue: (key: string, value: any) => void;
+declare var unsafeWindow: Window & typeof globalThis;
 
 // Расширяем глобальный интерфейс для vitest.setup.ts
 declare global {
