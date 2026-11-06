@@ -6,22 +6,24 @@
     <img
         ref="imgEl"
         class="v-photo-sticker-img"
+        :class="{'v-photo-sticker-img--placeholder': !isLoaded}"
         tabindex="0"
-        :src="photoUrl"
-        :alt="sticker.photo.text"
+        :src="imgSrc"
+        :alt="isLoaded ? sticker.photo.text : ''"
         :title="sticker.suggestions[0]"
         @dragstart.prevent
         @click.prevent.stop="emit('sendSticker', sticker)"
         @load="isLoading = false"
-        @error="isError = true; isLoading = false;"
+        @error="onError"
     />
   </a>
 </template>
 <script lang="ts" setup>
 import {PhotoSticker} from "./types";
 import {computed, ref, useTemplateRef, watch} from "vue";
-import {useElementSize} from "@vueuse/core";
+import {useElementSize, useTimeoutFn} from "@vueuse/core";
 import {getPhotoStickerHref, getPhotoStickerUrl} from "./photoStickerUtils";
+import {Logger} from "../../classes/Logger";
 
 const props = defineProps<{
   sticker: PhotoSticker;
@@ -29,7 +31,17 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "sendSticker", sticker: PhotoSticker): void;
+  (e: "loadFailed", sticker: PhotoSticker): void;
 }>();
+
+/** Сколько раз пробуем загрузить картинку: VK периодически отдаёт ошибку на ровном месте. */
+const MAX_LOAD_ATTEMPTS = 3;
+
+/** Пауза перед повтором, растёт с номером попытки. */
+const RETRY_DELAY_MS = 700;
+
+/** Ширина чёрной плашки, пока картинки нет: настоящей ширины мы ещё не знаем. */
+const PLACEHOLDER_WIDTH = '100px';
 
 const imgEl = useTemplateRef("imgEl");
 
@@ -37,23 +49,72 @@ const photoUrl = computed(() => getPhotoStickerUrl(props.sticker));
 
 const isLoading = ref(true);
 const isError = ref(false);
+const attempt = ref(0);
+// undefined, а не пустая строка: пустой src браузер трактует как ссылку на саму страницу
+const imgSrc = ref<string | undefined>(photoUrl.value);
+
+// снятие src само по себе стреляет error - пока флаг поднят, такую ошибку не считаем попыткой
+const isRetrying = ref(false);
+
+// снимаем src и возвращаем его же: иначе браузер не повторит запрос за той же картинкой
+const {start: startRetry, stop: stopRetry} = useTimeoutFn(
+    () => {
+      isRetrying.value = false;
+      imgSrc.value = photoUrl.value;
+    },
+    () => RETRY_DELAY_MS * attempt.value,
+    {immediate: false}
+);
+
+const isLoaded = computed(() => !isLoading.value && !isError.value);
 
 const {width: imgWidth} = useElementSize(imgEl);
 
 const textWidth = computed(() => {
-  return isError.value || isLoading.value ? '100px' : imgWidth.value + "px";
+  return isLoaded.value ? imgWidth.value + "px" : PLACEHOLDER_WIDTH;
 });
 
-watch(photoUrl, () => {
+watch(photoUrl, (photoUrl) => {
+  stopRetry();
+  isRetrying.value = false;
   isLoading.value = true;
   isError.value = false;
+  attempt.value = 0;
+  imgSrc.value = photoUrl;
 })
+
+function onError() {
+  // снятый src и повторная ошибка на уже провалившемся фото новых попыток не стоят
+  if (isRetrying.value || isError.value) {
+    return;
+  }
+
+  Logger.error('VPhotoSticker: фото не загрузилось', {
+    url: photoUrl.value,
+    attempt: attempt.value,
+    photo: props.sticker.photo,
+    suggestion: props.sticker.suggestions[0],
+  });
+
+  if (attempt.value < MAX_LOAD_ATTEMPTS) {
+    attempt.value++;
+    isRetrying.value = true;
+    imgSrc.value = undefined;
+    startRetry();
+    return;
+  }
+
+  isError.value = true;
+  isLoading.value = false;
+  // без src браузер не рисует значок битой картинки - остаётся ровная чёрная плашка
+  imgSrc.value = undefined;
+  emit('loadFailed', props.sticker);
+}
 
 </script>
 <style lang="scss">
 .v-photo-sticker {
   position: relative;
-  opacity: v-bind('isLoading ? 0 : 1');
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
@@ -62,7 +123,8 @@ watch(photoUrl, () => {
 
   .v-photo-sticker-text {
     color: #fff;
-    background-color: rgba(0, 0, 0, 0.7);
+    // непрозрачный фон: сквозь полупрозрачный просвечивала переписка
+    background-color: #000;
     white-space: normal;
     word-break: auto-phrase;
     padding: 4px;
@@ -71,7 +133,8 @@ watch(photoUrl, () => {
     font-size: 14px;
     line-height: 1.3;
     width: v-bind(textWidth);
-    max-height: 70px;
+    // ровно 4 строки + вертикальные padding'и, иначе последняя строка обрезается пополам
+    max-height: calc(4 * 1.3em + 8px);
     box-sizing: border-box;
     overflow: auto;
     outline: 1px solid rgba(255, 255, 255, 0.67);
@@ -87,6 +150,14 @@ watch(photoUrl, () => {
     border-radius: 0 0 8px 8px;
     object-fit: cover;
     cursor: pointer;
+    background-color: #000;
+    // alt не показываем: вместо него чёрная плашка
+    font-size: 0;
+
+    // пока картинки нет, держим ширину плашки с текстом, иначе стикер схлопнется
+    &--placeholder {
+      width: v-bind(PLACEHOLDER_WIDTH);
+    }
 
     &:focus {
       outline: var(--vkui_internal--outline);

@@ -7,6 +7,7 @@
             :key="sticker.photo.id"
             :sticker="sticker"
             @sendSticker="emit('sendSticker', sticker)"
+            @loadFailed="emit('loadFailed', sticker)"
         />
       </div>
     </transition>
@@ -48,6 +49,7 @@ const lastStickers = computed<PhotoSticker[]>((prev) => {
 
 const emit = defineEmits<{
   (e: "sendSticker", sticker: PhotoSticker): void
+  (e: "loadFailed", sticker: PhotoSticker): void
 }>()
 
 </script>

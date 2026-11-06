@@ -39,13 +39,28 @@ const photoCache = PhotoCache.getInstance()
 let albumIds: number[] | undefined
 let needUpdatePhotos = true
 
+/** Перезапрашиваем альбомы из-за незагрузившихся картинок только один раз за сессию. */
+let isReloadingFailedPhotos = false
+
 const stickersStore = shallowReactive<{
     photos: PhotoSticker[]
     stickers: PhotoSticker[]
     teleportEl?: HTMLDivElement
     onSendSticker(sticker: PhotoSticker): void
+    onLoadFailed(sticker: PhotoSticker): void
 }>({
-    photos: [], stickers: [], onSendSticker: async (sticker: PhotoSticker) => {
+    photos: [], stickers: [], onLoadFailed: async (sticker: PhotoSticker) => {
+        if (isReloadingFailedPhotos || albumIds === undefined) {
+            return
+        }
+
+        // картинка не открылась даже после повторов - значит ссылки в кэше мёртвые, забираем альбомы заново
+        isReloadingFailedPhotos = true
+        Logger.error('messenger: фото не загрузилось после всех попыток, перезапрашиваем альбомы', sticker.photo)
+        await loadPhotos(albumIds)
+        // показанные подсказки держат старые объекты с мёртвыми ссылками - пересобираем их
+        await showStickers(messageText.value)
+    }, onSendSticker: async (sticker: PhotoSticker) => {
         stickersStore.stickers = []
         Logger.info('onSendSticker: sticker', sticker)
         const peer_id = VKLocation.getPeerId()
