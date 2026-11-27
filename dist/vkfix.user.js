@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         vkfix
-// @version      2.2
+// @version      2.2.1
 // @author       Ivan Petrov
 // @description  VKFix Userscript for fixing VK social network
 // @license      MIT
-// @source       github:lazytechwork/vkfix
+// @source       github:akayumeru/vkfix
 // @match        https://vk.com/*
 // @match        https://vk.ru/*
 // @match        https://cargo.tau.vk.ru/*

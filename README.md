@@ -68,7 +68,7 @@
 ### Установка из релиза
 
 1. Установите Tampermonkey/Violentmonkey в ваш браузер
-2. Скачайте файл `vkfix.user.js` из последнего [релиза](https://github.com/lazytechwork/vkfix/releases)
+2. Скачайте файл `vkfix.user.js` из последнего [релиза](https://github.com/akayumeru/vkfix/releases)
 3. Откройте файл — менеджер userscript предложит установить его
 4. Нажмите «Установить»
 
