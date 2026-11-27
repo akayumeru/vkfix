@@ -26,7 +26,7 @@
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   };
   var require_index_001 = __commonJS({
-    "index-DsMYeTSV.js"(exports$1, module) {
+    "index-Cw_l6vdG.js"(exports$1, module) {
       const DEFAULT_VALUES = {
         fixImagesZooming: false,
         pvExpand: false,
@@ -11586,30 +11586,26 @@ sortAndLimitResults(results, limit) {
         const url = /[?&]cs=/.test(thumbUrl) ? thumbUrl.replace(/([?&]cs=)[^&]*/, `$1${width}x0`) : `${thumbUrl}&cs=${width}x0`;
         return { url, width, targetWidth };
       }
-      const MUTE_BUTTON_SELECTOR = 'button[data-testid="clips-controls-mute-button"]';
       const UNMUTE_LABEL = "Включить звук";
       const PROCESSED_ATTR = "data-vkfix-unmuted";
+      function findUnmuteButtons() {
+        return [...document.querySelectorAll("button")].filter((buttonEl) => {
+          const name = (buttonEl.getAttribute("aria-label") || buttonEl.textContent || "").replace(/\u00a0/g, " ").trim();
+          return name === UNMUTE_LABEL;
+        });
+      }
       function initClipsAutoUnmute() {
         if (!GlobalConfig.Config.get("clipsAutoUnmute")) {
           return;
         }
-        const loggedButtons = new WeakSet();
         const unmuteAll = throttle(() => {
-          for (const buttonEl of document.querySelectorAll(MUTE_BUTTON_SELECTOR)) {
+          for (const buttonEl of findUnmuteButtons()) {
             if (buttonEl.hasAttribute(PROCESSED_ATTR)) {
-              continue;
-            }
-            const label = buttonEl.textContent?.trim();
-            if (!loggedButtons.has(buttonEl)) {
-              loggedButtons.add(buttonEl);
-              Logger.info("clipsAutoUnmute: найдена кнопка звука", { label, buttonEl });
-            }
-            if (label !== UNMUTE_LABEL) {
               continue;
             }
             buttonEl.setAttribute(PROCESSED_ATTR, "");
             buttonEl.click();
-            Logger.info("clipsAutoUnmute: включили звук", buttonEl.textContent?.trim());
+            Logger.info("clipsAutoUnmute: включили звук", buttonEl);
           }
         }, 100);
         useMutationObserver(document.body, unmuteAll, { childList: true, subtree: true });
