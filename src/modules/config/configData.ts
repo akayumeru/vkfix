@@ -42,6 +42,7 @@ export const configSections: ConfigSectionInfo[] = [
       'pvExpandRightMonitorDefault',
       'pvExpandLeftMonitorDefault',
       'pvPhotoSwitchWheel',
+      'pvPhotoAlbumForSinglePost',
       'pvPhotoMoreActCommunityKeeper',
       'pvPhotoMoreActAlbum',
     ],
@@ -62,7 +63,7 @@ export const configSections: ConfigSectionInfo[] = [
     id: 'other',
     title: 'Прочее',
     icon: Icon28AdvertisingOutline,
-    fieldKeys: ['switchTextLayout', 'fixFeedPhotoNavigation', 'clipsAutoUnmute', 'exportCommunityKeeperBtn'],
+    fieldKeys: ['switchTextLayout', 'clipsAutoUnmute', 'exportCommunityKeeperBtn'],
   },
 ]
 
@@ -106,6 +107,13 @@ export const configFieldsMeta: Record<string, ConfigFieldInfo> = {
     type: 'checkbox',
     icon: '🎡'
   },
+  pvPhotoAlbumForSinglePost: {
+    key: 'pvPhotoAlbumForSinglePost',
+    label: 'Листать весь альбом, если в записи одна фотография',
+    type: 'checkbox',
+    icon: '📷',
+    description: 'Открывает все фотографии альбома вместо одной фотографии из записи'
+  },
   pvPhotoMoreActCommunityKeeper: {
     key: 'pvPhotoMoreActCommunityKeeper',
     label: 'Кнопка "Открыть в Хранителе Групп"',
@@ -146,12 +154,6 @@ export const configFieldsMeta: Record<string, ConfigFieldInfo> = {
     type: 'checkbox',
     icon: '⌨️',
     description: 'Для введённого или выделенного текста в любом редактируемом месте'
-  },
-  fixFeedPhotoNavigation: {
-    key: 'fixFeedPhotoNavigation',
-    label: 'Возвращает пролистывание фото в ленте',
-    type: 'checkbox',
-    icon: '📸'
   },
   clipsAutoUnmute: {
     key: 'clipsAutoUnmute',

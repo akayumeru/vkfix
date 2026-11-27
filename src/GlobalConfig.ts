@@ -4,6 +4,7 @@ const DEFAULT_VALUES: Record<string, boolean | string> = {
   pvExpandRightMonitorDefault: false,
   pvExpandLeftMonitorDefault: false,
   pvPhotoSwitchWheel: true,
+  pvPhotoAlbumForSinglePost: true,
   pvPhotoMoreActCommunityKeeper: true,
   pvPhotoMoreActAlbum: true,
   exportCommunityKeeperBtn: false,
@@ -11,7 +12,6 @@ const DEFAULT_VALUES: Record<string, boolean | string> = {
   'messenger.photo-stickers': false,
   'messenger.photo-stickers.albums': '-15,',
   switchTextLayout: false,
-  fixFeedPhotoNavigation: false,
   groupInfoTeleport: false,
   clipsAutoUnmute: false,
 }

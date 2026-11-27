@@ -1,6 +1,7 @@
 import {GlobalConfig} from '../GlobalConfig';
 import {Logger} from "../classes/Logger";
 import {querySelectorWithTimeout} from "../common/helpers/querySelectorWithTimeout";
+import {initNewPhotoViewer} from "./newPhotoViewer";
 
 interface PVAddonsContext {
     pvPhoto: HTMLDivElement;
@@ -9,8 +10,10 @@ interface PVAddonsContext {
 }
 
 export async function pvAddons() {
-    // Фикс навигации по фото в ленте - вызываем первым делом
-    fixFeedPhotoNavigation();
+    // Новый (vkit) фотопросмотрщик - вызываем первым делом
+    initNewPhotoViewer().catch((e) => {
+        Logger.warn("Ошибка в initNewPhotoViewer.", {e});
+    });
 
     const isPvExpand = GlobalConfig.Config.get('pvExpand') as boolean;
     const pvPhotoSwitchWheel = GlobalConfig.Config.get('pvPhotoSwitchWheel') as boolean;
@@ -312,87 +315,3 @@ function photoMoreActs({pvBox}: PVAddonsContext) {
 }
 
 declare const cur: any
-
-// Флаг что мы уже в процессе фикса (чтобы не реагировать на свои же изменения URL)
-let isFixingFeedPhoto = false;
-// Флаг что фотопросмотрщик уже открыт (чтобы не реагировать на переключение фото)
-let isPhotoViewerActive = false;
-
-/**
- * Фикс навигации по фото в ленте.
- * ВК добавляет хеш в URL фото (например /feed?z=photo-123_456%2Fabc123hash),
- * который ломает пролистывание. Мы убираем этот хеш, чтобы вернуть навигацию.
- */
-function fixFeedPhotoNavigation() {
-    const isEnabled = GlobalConfig.Config.get('fixFeedPhotoNavigation') as boolean;
-    if (!isEnabled) {
-        return;
-    }
-
-    // Если мы в процессе фикса - игнорируем
-    if (isFixingFeedPhoto) {
-        return;
-    }
-
-    const url = new URL(window.location.href);
-    const zParam = url.searchParams.get('z');
-
-    // Если z параметра нет - фотопросмотрщик закрыт
-    if (!zParam) {
-        isPhotoViewerActive = false;
-        return;
-    }
-
-    // Если фотопросмотрщик уже активен - не реагируем на переключение фото
-    if (isPhotoViewerActive) {
-        return;
-    }
-
-    // Проверяем что есть параметр z с фото
-    if (!zParam.startsWith('photo')) {
-        return;
-    }
-
-    // Проверяем что мы НЕ в мессенджере
-    const pathname = window.location.pathname;
-    if (pathname.startsWith('/im')) {
-        return;
-    }
-
-    // Проверяем есть ли хеш в параметре (формат: photo-123_456%2Fhash или photo-123_456/hash)
-    const decodedZ = decodeURIComponent(zParam);
-    const slashIndex = decodedZ.indexOf('/');
-
-    if (slashIndex === -1) {
-        // Хеша нет, ничего делать не нужно
-        return;
-    }
-
-    // Извлекаем только ID фото без хеша
-    const photoId = decodedZ.substring(0, slashIndex);
-
-    Logger.info('fixFeedPhotoNavigation: убираем хеш из URL фото', {
-        original: zParam,
-        photoId: photoId
-    });
-
-    // Устанавливаем флаги
-    isFixingFeedPhoto = true;
-    isPhotoViewerActive = true;
-
-    // Шаг 1: replaceState с чистым URL (без хеша)
-    const cleanUrl = new URL(window.location.href);
-    cleanUrl.searchParams.set('z', photoId);
-    history.replaceState(null, "", cleanUrl.toString());
-
-    // Шаг 2: pushState с тем же URL чтобы создать запись в истории
-    history.pushState(null, "", cleanUrl.toString());
-
-    // Шаг 3: back() чтобы React среагировал на изменение
-    history.back();
-
-    // Сбрасываем флаг фикса после небольшой задержки
-    setTimeout(() => {
-        isFixingFeedPhoto = false;
-    }, 100);
-}

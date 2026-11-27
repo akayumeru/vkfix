@@ -26,13 +26,14 @@
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   };
   var require_index_001 = __commonJS({
-    "index-Cw_l6vdG.js"(exports$1, module) {
+    "index-DqiI3JrW.js"(exports$1, module) {
       const DEFAULT_VALUES = {
         fixImagesZooming: false,
         pvExpand: false,
         pvExpandRightMonitorDefault: false,
         pvExpandLeftMonitorDefault: false,
         pvPhotoSwitchWheel: true,
+        pvPhotoAlbumForSinglePost: true,
         pvPhotoMoreActCommunityKeeper: true,
         pvPhotoMoreActAlbum: true,
         exportCommunityKeeperBtn: false,
@@ -40,7 +41,6 @@
         "messenger.photo-stickers": false,
         "messenger.photo-stickers.albums": "-15,",
         switchTextLayout: false,
-        fixFeedPhotoNavigation: false,
         groupInfoTeleport: false,
         clipsAutoUnmute: false
       };
@@ -8606,8 +8606,310 @@ toValue(firstParamTargets.value ? args[3] : args[2])
           }
         });
       }
+      function uniq(arr) {
+        return Array.from(new Set(arr));
+      }
+      function debounce(func, debounceMs, { signal, edges } = {}) {
+        let pendingThis = void 0;
+        let pendingArgs = null;
+        const leading = edges != null && edges.includes("leading");
+        const trailing = edges == null || edges.includes("trailing");
+        const invoke = () => {
+          if (pendingArgs !== null) {
+            func.apply(pendingThis, pendingArgs);
+            pendingThis = void 0;
+            pendingArgs = null;
+          }
+        };
+        const onTimerEnd = () => {
+          if (trailing) {
+            invoke();
+          }
+          cancel();
+        };
+        let timeoutId = null;
+        const schedule = () => {
+          if (timeoutId != null) {
+            clearTimeout(timeoutId);
+          }
+          timeoutId = setTimeout(() => {
+            timeoutId = null;
+            onTimerEnd();
+          }, debounceMs);
+        };
+        const cancelTimer = () => {
+          if (timeoutId !== null) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+        };
+        const cancel = () => {
+          cancelTimer();
+          pendingThis = void 0;
+          pendingArgs = null;
+        };
+        const flush = () => {
+          cancelTimer();
+          invoke();
+        };
+        const debounced = function(...args) {
+          if (signal?.aborted) {
+            return;
+          }
+          pendingThis = this;
+          pendingArgs = args;
+          const isFirstCall = timeoutId == null;
+          schedule();
+          if (leading && isFirstCall) {
+            invoke();
+          }
+        };
+        debounced.schedule = schedule;
+        debounced.cancel = cancel;
+        debounced.flush = flush;
+        signal?.addEventListener("abort", cancel, { once: true });
+        return debounced;
+      }
+      function throttle(func, throttleMs, { signal, edges = ["leading", "trailing"] } = {}) {
+        let pendingAt = null;
+        const debounced = debounce(func, throttleMs, { signal, edges });
+        const throttled = function(...args) {
+          if (pendingAt == null) {
+            pendingAt = Date.now();
+          } else {
+            if (Date.now() - pendingAt >= throttleMs) {
+              pendingAt = Date.now();
+              debounced.cancel();
+            }
+          }
+          debounced(...args);
+        };
+        throttled.cancel = debounced.cancel;
+        throttled.flush = debounced.flush;
+        return throttled;
+      }
+      function sleep(timeout) {
+        return new Promise((resolve) => setTimeout(resolve, timeout));
+      }
+      const BACKDROP_SELECTOR = "[data-photo-viewer-backdrop]";
+      const PROCESSED_ATTR$2 = "data-vkfix-viewer";
+      const COMMUNITY_KEEPER_LABEL = "Открыть в Хранителе Групп";
+      const COMMUNITY_KEEPER_ATTR = "data-vkfix-keeper";
+      const MENU_MARKER_LABEL = "Пожаловаться";
+      const ORIGINAL_ACT_LABEL = "Открыть оригинал";
+      const ALBUM_ACT_LABEL = "Перейти к альбому";
+      const WHEEL_MIN_DELTA = 20;
+      const WHEEL_MIN_DELTA_LINES = 1;
+      const WHEEL_THROTTLE_MS = 60;
+      function findServices(backdrop) {
+        const fiberKey = Object.keys(backdrop).find((key) => key.startsWith("__reactFiber$"));
+        if (!fiberKey) {
+          return void 0;
+        }
+        let fiber = backdrop[fiberKey];
+        for (let depth = 0; fiber && depth < 60; depth++) {
+          let hook = fiber.memoizedState;
+          for (let index = 0; hook && index < 30; index++) {
+            const state = hook.memoizedState;
+            if (state && typeof state === "object" && typeof state.showNext === "function" && state.listService && state.photoService) {
+              return state;
+            }
+            hook = hook.next;
+          }
+          fiber = fiber.return;
+        }
+        return void 0;
+      }
+      function isInsideScrollableArea(target, boundary) {
+        let element = target instanceof Element ? target : null;
+        const boundaryHeight = boundary.getBoundingClientRect().height;
+        while (element && element !== boundary) {
+          const { overflowY } = getComputedStyle(element);
+          const isPanel = element.getBoundingClientRect().height < boundaryHeight * 0.9;
+          if (isPanel && /auto|scroll/.test(overflowY) && element.scrollHeight > element.clientHeight + 4) {
+            return true;
+          }
+          element = element.parentElement;
+        }
+        return false;
+      }
+      function attachPhotoSwitchWheel(listenerTarget, services) {
+        let lastSwitchTime = 0;
+        listenerTarget.addEventListener("wheel", (event) => {
+          if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) {
+            return;
+          }
+          const minDelta = event.deltaMode === WheelEvent.DOM_DELTA_PIXEL ? WHEEL_MIN_DELTA : WHEEL_MIN_DELTA_LINES;
+          if (Math.abs(event.deltaY) < minDelta) {
+            return;
+          }
+          if (isInsideScrollableArea(event.target, listenerTarget)) {
+            return;
+          }
+          event.preventDefault();
+          const now = Date.now();
+          if (now - lastSwitchTime < WHEEL_THROTTLE_MS) {
+            return;
+          }
+          lastSwitchTime = now;
+          try {
+            if (event.deltaY > 0) {
+              services.showNext();
+            } else {
+              services.showPrevious();
+            }
+          } catch (e) {
+            Logger.warn("newPhotoViewer: сервисы вьюера отказались переключать фото", { e });
+          }
+        }, { capture: true });
+      }
+      function isSinglePhotoPost(listService) {
+        try {
+          const { type } = listService.context;
+          if (type === "single") {
+            return true;
+          }
+          return type === "wall" && listService.total <= 1;
+        } catch {
+          return false;
+        }
+      }
+      async function switchSinglePostToAlbum(services, viewerElement) {
+        const listService = services.listService;
+        const isViewerAlive = () => viewerElement.isConnected;
+        for (let attempt = 0; !services.photoService.photo && attempt < 50; attempt++) {
+          await sleep(100);
+          if (!isViewerAlive()) {
+            return;
+          }
+        }
+        if (!services.photoService.photo) {
+          Logger.info("newPhotoViewer: фото не загрузилось, альбом не подключаем");
+          return;
+        }
+        if (!isSinglePhotoPost(listService)) {
+          return;
+        }
+        let switched = false;
+        for (let attempt = 0; !switched && attempt < 3; attempt++) {
+          if (attempt > 0) {
+            await sleep(200);
+            if (!isViewerAlive()) {
+              return;
+            }
+          }
+          switched = await listService.switchToPhotoAlbum();
+        }
+        if (!switched) {
+          Logger.info("newPhotoViewer: switchToPhotoAlbum отказал (альбома нет или контекст сменился)");
+          return;
+        }
+        for (let attempt = 0; listService.isLoading && attempt < 50; attempt++) {
+          await sleep(100);
+          if (!isViewerAlive()) {
+            return;
+          }
+        }
+        await listService.load();
+        Logger.info("newPhotoViewer: переключились на альбом фотографии", listService.context);
+      }
+      let lastViewerServices;
+      let keeperMenuWatcherStarted = false;
+      const normalizeText$1 = (text) => (text || "").replace(/\u00a0/g, " ").trim();
+      function findLeafByLabel(label) {
+        const leaves = [...document.querySelectorAll("span, div")].filter(
+          (el) => !el.children.length && normalizeText$1(el.textContent) === label
+        );
+        return leaves[leaves.length - 1];
+      }
+      function injectCommunityKeeperAct() {
+        const photo = lastViewerServices?.photoService.photo;
+        if (!photo || photo.owner_id >= 0) {
+          return;
+        }
+        const marker = findLeafByLabel(MENU_MARKER_LABEL);
+        const menu = marker?.closest('[role="dialog"]');
+        if (!menu || menu.querySelector(`[${COMMUNITY_KEEPER_ATTR}]`)) {
+          return;
+        }
+        const rows = [...menu.querySelectorAll('a, [role="button"]')];
+        const originalRow = rows.find(
+          (row) => row instanceof HTMLAnchorElement && normalizeText$1(row.textContent) === ORIGINAL_ACT_LABEL
+        );
+        if (!originalRow) {
+          return;
+        }
+        const act = originalRow.cloneNode(true);
+        act.setAttribute(COMMUNITY_KEEPER_ATTR, "true");
+        act.href = `https://${window.location.host}/app51658481#/photo${photo.owner_id}_${photo.id}`;
+        act.target = "_blank";
+        act.rel = "noopener noreferrer";
+        for (const labelEl of act.querySelectorAll("span")) {
+          if (!labelEl.children.length && normalizeText$1(labelEl.textContent) === ORIGINAL_ACT_LABEL) {
+            labelEl.textContent = COMMUNITY_KEEPER_LABEL;
+          }
+        }
+        const albumIcon = rows.find((row) => normalizeText$1(row.textContent) === ALBUM_ACT_LABEL)?.querySelector("svg");
+        const actIcon = act.querySelector("svg");
+        if (albumIcon && actIcon) {
+          actIcon.replaceWith(albumIcon.cloneNode(true));
+        }
+        originalRow.parentElement?.append(act);
+        Logger.info("newPhotoViewer: добавили пункт «" + COMMUNITY_KEEPER_LABEL + "» в меню «Ещё»");
+      }
+      function watchCommunityKeeperMenu() {
+        if (keeperMenuWatcherStarted) {
+          return;
+        }
+        keeperMenuWatcherStarted = true;
+        const tryInject = throttle(injectCommunityKeeperAct, 100);
+        useMutationObserver(document.body, tryInject, { childList: true, subtree: true });
+        tryInject();
+      }
+      async function initNewPhotoViewer() {
+        const wheelEnabled = GlobalConfig.Config.get("pvPhotoSwitchWheel");
+        const albumForSinglePost = GlobalConfig.Config.get("pvPhotoAlbumForSinglePost");
+        if (!wheelEnabled && !albumForSinglePost) {
+          return;
+        }
+        const isDirectPhotoPage = window.location.pathname.startsWith("/photo");
+        const backdrop = await querySelectorWithTimeout({
+          selectors: BACKDROP_SELECTOR,
+          timeout: isDirectPhotoPage ? 5e3 : 2e3
+        });
+        if (!backdrop) {
+          Logger.info("newPhotoViewer: вьюер не найден");
+          return;
+        }
+        if (backdrop.hasAttribute(PROCESSED_ATTR$2)) {
+          return;
+        }
+        const services = findServices(backdrop);
+        if (!services) {
+          Logger.info("newPhotoViewer: не нашли сервисы вьюера в файбере");
+          return;
+        }
+        backdrop.setAttribute(PROCESSED_ATTR$2, "true");
+        lastViewerServices = services;
+        if (GlobalConfig.Config.get("pvPhotoMoreActCommunityKeeper")) {
+          watchCommunityKeeperMenu();
+        }
+        const modalRoot = backdrop.parentElement ?? backdrop;
+        if (wheelEnabled) {
+          attachPhotoSwitchWheel(modalRoot, services);
+        }
+        if (albumForSinglePost && !window.location.pathname.startsWith("/im")) {
+          if (isSinglePhotoPost(services.listService)) {
+            switchSinglePostToAlbum(services, backdrop).catch((e) => {
+              Logger.warn("newPhotoViewer: не удалось переключиться на альбом", { e });
+            });
+          }
+        }
+      }
       async function pvAddons() {
-        fixFeedPhotoNavigation();
+        initNewPhotoViewer().catch((e) => {
+          Logger.warn("Ошибка в initNewPhotoViewer.", { e });
+        });
         const isPvExpand = GlobalConfig.Config.get("pvExpand");
         const pvPhotoSwitchWheel = GlobalConfig.Config.get("pvPhotoSwitchWheel");
         const pvPhotoMoreActCommunityKeeper = GlobalConfig.Config.get("pvPhotoMoreActCommunityKeeper");
@@ -8854,56 +9156,6 @@ toValue(firstParamTargets.value ? args[3] : args[2])
           capture: true,
           signal
         });
-      }
-      let isFixingFeedPhoto = false;
-      let isPhotoViewerActive = false;
-      function fixFeedPhotoNavigation() {
-        const isEnabled = GlobalConfig.Config.get("fixFeedPhotoNavigation");
-        if (!isEnabled) {
-          return;
-        }
-        if (isFixingFeedPhoto) {
-          return;
-        }
-        const url = new URL(window.location.href);
-        const zParam = url.searchParams.get("z");
-        if (!zParam) {
-          isPhotoViewerActive = false;
-          return;
-        }
-        if (isPhotoViewerActive) {
-          return;
-        }
-        if (!zParam.startsWith("photo")) {
-          return;
-        }
-        const pathname = window.location.pathname;
-        if (pathname.startsWith("/im")) {
-          return;
-        }
-        const decodedZ = decodeURIComponent(zParam);
-        const slashIndex = decodedZ.indexOf("/");
-        if (slashIndex === -1) {
-          return;
-        }
-        const photoId = decodedZ.substring(0, slashIndex);
-        Logger.info("fixFeedPhotoNavigation: убираем хеш из URL фото", {
-          original: zParam,
-          photoId
-        });
-        isFixingFeedPhoto = true;
-        isPhotoViewerActive = true;
-        const cleanUrl = new URL(window.location.href);
-        cleanUrl.searchParams.set("z", photoId);
-        history.replaceState(null, "", cleanUrl.toString());
-        history.pushState(null, "", cleanUrl.toString());
-        history.back();
-        setTimeout(() => {
-          isFixingFeedPhoto = false;
-        }, 100);
-      }
-      function sleep(timeout) {
-        return new Promise((resolve) => setTimeout(resolve, timeout));
       }
       class APIInteractor {
         static async callApiRaw(endpoint, data) {
@@ -9644,88 +9896,6 @@ lowerBound(word) {
           }
         }
         return null;
-      }
-      function uniq(arr) {
-        return Array.from(new Set(arr));
-      }
-      function debounce(func, debounceMs, { signal, edges } = {}) {
-        let pendingThis = void 0;
-        let pendingArgs = null;
-        const leading = edges != null && edges.includes("leading");
-        const trailing = edges == null || edges.includes("trailing");
-        const invoke = () => {
-          if (pendingArgs !== null) {
-            func.apply(pendingThis, pendingArgs);
-            pendingThis = void 0;
-            pendingArgs = null;
-          }
-        };
-        const onTimerEnd = () => {
-          if (trailing) {
-            invoke();
-          }
-          cancel();
-        };
-        let timeoutId = null;
-        const schedule = () => {
-          if (timeoutId != null) {
-            clearTimeout(timeoutId);
-          }
-          timeoutId = setTimeout(() => {
-            timeoutId = null;
-            onTimerEnd();
-          }, debounceMs);
-        };
-        const cancelTimer = () => {
-          if (timeoutId !== null) {
-            clearTimeout(timeoutId);
-            timeoutId = null;
-          }
-        };
-        const cancel = () => {
-          cancelTimer();
-          pendingThis = void 0;
-          pendingArgs = null;
-        };
-        const flush = () => {
-          cancelTimer();
-          invoke();
-        };
-        const debounced = function(...args) {
-          if (signal?.aborted) {
-            return;
-          }
-          pendingThis = this;
-          pendingArgs = args;
-          const isFirstCall = timeoutId == null;
-          schedule();
-          if (leading && isFirstCall) {
-            invoke();
-          }
-        };
-        debounced.schedule = schedule;
-        debounced.cancel = cancel;
-        debounced.flush = flush;
-        signal?.addEventListener("abort", cancel, { once: true });
-        return debounced;
-      }
-      function throttle(func, throttleMs, { signal, edges = ["leading", "trailing"] } = {}) {
-        let pendingAt = null;
-        const debounced = debounce(func, throttleMs, { signal, edges });
-        const throttled = function(...args) {
-          if (pendingAt == null) {
-            pendingAt = Date.now();
-          } else {
-            if (Date.now() - pendingAt >= throttleMs) {
-              pendingAt = Date.now();
-              debounced.cancel();
-            }
-          }
-          debounced(...args);
-        };
-        throttled.cancel = debounced.cancel;
-        throttled.flush = debounced.flush;
-        return throttled;
       }
       function normalizeLetters(text) {
         return text.toLowerCase().replaceAll("ё", "е");
@@ -34076,6 +34246,7 @@ as: {
             "pvExpandRightMonitorDefault",
             "pvExpandLeftMonitorDefault",
             "pvPhotoSwitchWheel",
+            "pvPhotoAlbumForSinglePost",
             "pvPhotoMoreActCommunityKeeper",
             "pvPhotoMoreActAlbum"
           ]
@@ -34096,7 +34267,7 @@ as: {
           id: "other",
           title: "Прочее",
           icon: vYe,
-          fieldKeys: ["switchTextLayout", "fixFeedPhotoNavigation", "clipsAutoUnmute", "exportCommunityKeeperBtn"]
+          fieldKeys: ["switchTextLayout", "clipsAutoUnmute", "exportCommunityKeeperBtn"]
         }
       ];
       const configFieldsMeta = {
@@ -34137,6 +34308,13 @@ as: {
           type: "checkbox",
           icon: "🎡"
         },
+        pvPhotoAlbumForSinglePost: {
+          key: "pvPhotoAlbumForSinglePost",
+          label: "Листать весь альбом, если в записи одна фотография",
+          type: "checkbox",
+          icon: "📷",
+          description: "Открывает все фотографии альбома вместо одной фотографии из записи"
+        },
         pvPhotoMoreActCommunityKeeper: {
           key: "pvPhotoMoreActCommunityKeeper",
           label: 'Кнопка "Открыть в Хранителе Групп"',
@@ -34176,12 +34354,6 @@ as: {
           type: "checkbox",
           icon: "⌨️",
           description: "Для введённого или выделенного текста в любом редактируемом месте"
-        },
-        fixFeedPhotoNavigation: {
-          key: "fixFeedPhotoNavigation",
-          label: "Возвращает пролистывание фото в ленте",
-          type: "checkbox",
-          icon: "📸"
         },
         clipsAutoUnmute: {
           key: "clipsAutoUnmute",
