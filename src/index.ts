@@ -4,7 +4,7 @@
 // @author Ivan Petrov (LazyTechwork)
 // @contributors Ivan Mel (ivanmem)
 // @license MIT
-// @version 2.2.1
+// @version 2.3
 // @include https://vk.com/*
 // @include https://vk.ru/*
 // @include https://cargo.tau.vk.ru/*

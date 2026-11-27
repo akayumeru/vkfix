@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         vkfix
-// @version      2.2.1
+// @version      2.3
 // @author       Ivan Petrov
 // @description  VKFix Userscript for fixing VK social network
 // @license      MIT
